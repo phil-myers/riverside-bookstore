@@ -1,4 +1,6 @@
-export function generateContent(book) {
+import { fetchBookMetadata } from "../lib/fetchBookMetadata";
+
+export async function generateContent(book) {
   if (!book || !book.book_title) {
     throw new Error('book_title is required');
   }
@@ -7,7 +9,7 @@ export function generateContent(book) {
   const author_name = book.author_name || '';
   const isbn = book.ISBN || '';
   const event_title = book.event_title || '';
-  const event_datetime = book['Author Events'] || '';
+  const event_datetime = (book['Author Events'] || '').trim();
   const event_description = book.event_description || '';
 
   const eventDataIncomplete =
@@ -20,6 +22,8 @@ export function generateContent(book) {
 
   console.log('eventDataIncomplete:', eventDataIncomplete);
 
+  const bookMetadata = isbn ? await fetchBookMetadata(isbn) : null;
+
   return {
     instagramCaption: `📚 Now featuring "${book_title}" by ${author_name}!${eventLine} #NewArrival #Bookstore`,
     newsletterBlurb: `New Arrival: "${book_title}" by ${author_name}${includeEvent ? `\n\nEvent: ${event_title} — ${event_datetime}\n${event_description}` : ''}`,
@@ -28,6 +32,7 @@ export function generateContent(book) {
       note: `We love this pick by ${author_name}.`,
       badge: 'Generated'
     },
+    bookMetadata,
     eventDataIncomplete
   };
 }

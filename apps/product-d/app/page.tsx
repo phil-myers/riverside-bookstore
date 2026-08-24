@@ -24,7 +24,7 @@ export default function Home() {
   const [stamped, setStamped] = useState(false);
   const [copiedType, setCopiedType] = useState<ContentType | null>(null);
 
-  function handleGenerate(e: React.FormEvent) {
+  async function handleGenerate(e: React.FormEvent) {
     e.preventDefault();
     if (!bookTitle) {
       setTitleError(true);
@@ -32,7 +32,7 @@ export default function Home() {
     }
     setTitleError(false);
     if (!authorName) return;
-    const content = generateContent({
+    const content = await generateContent({
       book_title: bookTitle,
       author_name: authorName,
       ISBN: isbn,
