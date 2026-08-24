@@ -6,7 +6,16 @@ import { localCatalog } from "./localCatalog";
  * rather than fetching from Open Library directly.
  */
 
-export type Genre = "fiction" | "nonfiction" | "children's" | "mystery" | "general";
+export type Genre =
+  | "fiction"
+  | "nonfiction"
+  | "children's"
+  | "mystery"
+  | "horror"
+  | "romance"
+  | "self-help"
+  | "cookbook"
+  | "general";
 
 export type Source = "openlibrary" | "local-fallback";
 
@@ -26,10 +35,27 @@ interface OpenLibraryBookEntry {
 }
 
 // Checked in order; the first genre whose keywords match any subject wins.
+//
+// children's is intentionally narrow: "juvenile" (as in Open Library's blanket
+// "Juvenile fiction" heading) was dropped because it fires on adult-crossover
+// classics, not just children's books — see session notes for the evidence
+// (The Catcher in the Rye, To Kill a Mockingbird both wrongly landed here).
+// Known accepted edge case: The Hobbit still matches, because it carries
+// genuine "Children's fiction"/"children's books"/"Children's stories" tags —
+// not just "juvenile" — and Charlotte's Web (an unambiguous children's book)
+// carries that exact same tag family. Subject-keyword matching can't tell
+// "genuinely children's" apart from "adult classic also catalogued as
+// children's" once a book has real Children's-family tags; narrowing further
+// would misclassify Charlotte's Web to fix The Hobbit. This is an accepted
+// limitation, not a bug.
 const GENRE_KEYWORD_RULES: [Genre, string[]][] = [
-  ["children's", ["juvenile", "children", "picture book", "kids", "young readers"]],
+  ["children's", ["children's", "picture book"]],
+  ["horror", ["horror"]],
   ["mystery", ["mystery", "detective", "crime", "thriller", "suspense"]],
-  ["nonfiction", ["nonfiction", "non-fiction", "biography", "autobiography", "history", "science", "essay", "memoir", "self-help"]],
+  ["romance", ["romance", "love stories"]],
+  ["self-help", ["self-help", "self-actualization", "self-management", "self-improvement", "personal development", "motivational"]],
+  ["cookbook", ["cooking", "cookbook", "cookery", "recipes"]],
+  ["nonfiction", ["nonfiction", "non-fiction", "biography", "autobiography", "history", "science", "essay", "memoir"]],
   ["fiction", ["fiction", "novel", "fantasy", "literature"]],
 ];
 
