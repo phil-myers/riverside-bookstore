@@ -383,3 +383,46 @@ so Product A does too rather than introducing a second test runner.
 **Actually run, not just written**: `bun run test` → 11 passed (11), real output pasted into
 this note, not claimed from reading the code. Re-ran `bun run lint` and `bun run build` after
 the `package.json` change to confirm nothing broke — both still pass.
+
+## 2026-08-24 — Live Google Books cover lookup (`getBook(isbn)`, finally built)
+
+Built on `product-a/google-books-lookup`, stacked on `product-a/cart-tests`. Jeffrey provided a
+real `GOOGLE_BOOKS_API_KEY` (in `.env.local`, gitignored, never committed) — the API-key blocker
+noted in the "Books schema retrofit" entry above is resolved, so `getBook(isbn)` (called
+`getBookCoverByIsbn` here since cover art is all it's used for right now) is finally built.
+
+- `lib/googleBooks.ts` — `getBookCoverByIsbn(isbn)`, server-side only (`GOOGLE_BOOKS_API_KEY` has
+  no `NEXT_PUBLIC_` prefix, so this must run in a Server Component, never the browser bundle).
+  Caches successful lookups for 24h via Next's `fetch(..., { next: { revalidate: 86400 } })`
+  instead of hammering the API on every request.
+- `lib/books.ts` — `getBooks()`'s sample-data path now enriches each `SAMPLE_BOOKS` entry with a
+  live cover via `getBookCoverByIsbn`; no-ops cleanly (no cover, same as before) if the env var
+  isn't set, so this never breaks the sample-data path for anyone without a key.
+- `.env.example` — documented `GOOGLE_BOOKS_API_KEY` as optional, server-side only.
+
+**Two real bugs found and fixed via live verification, not assumed correct from the code:**
+
+1. **Transient 5xx from Google's API.** First live screenshot showed only 2 of 8 covers loading;
+   individually curl-testing each ISBN showed some 503'd once and returned 200 moments later —
+   backend flakiness under bursts, not permanent misses. Fixed with one retry (400ms backoff) on
+   5xx before giving up. Re-verified: 5 of 8 loaded next pass (the other 3 are the checksum issue
+   below, correctly excluded).
+2. **Wrong cover displayed, not just a missing one — the more serious bug.** `Circe`'s ISBN in the
+   team's own synthetic dataset (`978-0-316-55635-9`,
+   `docs/schema/riverside-books-integration-chaos-test.csv`) fails ISBN-13 checksum validation.
+   Google's fuzzy `q=isbn:` search matched the malformed number to an unrelated book ("SEAL TEAM
+   SIX") and the app displayed that cover under Circe's title/author with full confidence — worse
+   than showing nothing. Checked all 8 sample ISBNs: `The Silent Patient` and `The Seven Husbands
+   of Evelyn Hugo` are also checksum-invalid (pre-existing in the CSV, not introduced this
+   session — the file is literally named "chaos-test"). Fixed with an ISBN-13 checksum guard in
+   `getBookCoverByIsbn` that rejects invalid ISBNs before ever querying Google, so a bad ISBN now
+   correctly yields no cover instead of an untrustworthy one.
+
+**Verified live** (real browser, `bun run dev`, real API key, `bun run lint` and `bun run build`
+clean before and after each fix): final screenshot shows correct covers for all 5 valid-ISBN
+books (`The Midnight Library`, `Educated`, `Where the Crawdads Sing`, `Atomic Habits`,
+`Project Hail Mary`) and correctly no cover for the 3 checksum-invalid ones, zero console errors.
+
+**Not fixed here, flagged instead**: the 3 invalid ISBNs are a data-quality issue in the shared
+synthetic CSV, not a Product A bug — worth the team's attention if that dataset gets used for
+anything ISBN-keyed elsewhere, but correcting the dataset itself is out of this branch's scope.
