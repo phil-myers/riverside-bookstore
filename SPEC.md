@@ -77,12 +77,13 @@
      always a non-empty string, matching the signature as drafted (no `?`). The `"general"`
      fallback already lives one layer up, in `fetchBookMetadata`'s `mapSubjectsToGenre()` — no
      duplicate default inside the pure function.
-  3. `apps/product-d/` in this monorepo is still on the pre-ISBN-lookup version of
-     `contentGenerator.js` as of the 2026-08-20 bootstrap (per `SESSION_STATE.md`) — this refactor
-     is scoped against Dominic's standalone working repo
-     (`dominicarlequin-design/marketing-content-generator`), which has since diverged with the
-     `fetchBookMetadata`/`lib/` work built this cycle. Does this refactor happen there and get
-     synced into `apps/product-d/` afterward, or does `apps/product-d/` need syncing first?
+  3. **Resolved:** `apps/product-d/` was synced first. This session's Open Library integration
+     (caching, genre classification, all 12 tests) was brought over onto its own branch,
+     `product-d/session-openlibrary-integration`, applied identically to both that branch and the
+     standalone repo so they don't drift again, and verified there (`npm install` clean, `npm
+     test` 12/12, `tsc --noEmit` clean) — see that branch's `SESSION_STATE.md`. Not yet opened as
+     a PR, intentionally parked pending the sourcing decision, which PR #3 has since settled (see
+     Approach above).
   4. **Resolved:** `app/page.tsx`'s ISBN input field gets hidden, not left in place visually
      disconnected. Bring it back once the book-lookup function ships.
 
