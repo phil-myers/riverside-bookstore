@@ -20,6 +20,11 @@
    D has already built and pushed code against its own version. Needs a team conversation to pick
    one canonical enum, then updates to whichever product(s) don't match. See `DECISIONS.md`.
 
+**Resolved, 2026-08-24 — book data is live, not stored.** `book_title` and `author_name` are no
+longer synthetic columns — they're fetched from the Google Books API by `ISBN` at read time, along
+with a cover image, and cached in a new Supabase `books` table. `ISBN` itself stays a stored
+column (still the join key). See "Book Data" section below and `DECISIONS.md`.
+
 ---
 
 # Data Schema Template (V2)
@@ -36,13 +41,13 @@
 
 List every column your four products need to share. Below are the unified schema columns including customer, order, inventory, book metadata, and event details.
 
+`book_title` and `author_name` are **not** stored columns anymore — see "Book Data" below.
+
 | Column Name | Description | Format | Example Value   |
 | :---- | :---- | :---- | :---- |
 | customer_id | Unique identifier for a customer | string | cust_00042 |
 | signup_date | Date the customer signed up | date (YYYY-MM-DD) | 2026-03-14 |
-| ISBN | Universal book identifier | Number string | 978-1-56592-479-6 |
-| book_title | Full title of the book | string | The Midnight Library |
-| author_name | Full name of the book's author(s) | string | Matt Haig |
+| ISBN | Universal book identifier — join key for live book data | Number string | 978-1-56592-479-6 |
 | Author Events | Author Books Meet and Greet date/time | date (MM-DD-YYYY HH:MM) | September 5, 2026 at 6:30 PM |
 | event_title | Name or title of the upcoming event | string | Local Author Evening: Matt Haig |
 | event_description | Detailed overview and highlights of the event | string | Join us for an evening reading, Q&A, and book signing with author Matt Haig. |
@@ -54,6 +59,23 @@ List every column your four products need to share. Below are the unified schema
 | reward_points | Total active loyalty points accumulated by the customer | integer | 250 |
 | reorder_threshold | Minimum stock quantity for this title before staff should reorder more copies | integer | 5 |
 | quantity | Number of copies of a given title in an order | integer | 1 |
+
+## Book Data — live, not stored (added 2026-08-24)
+
+`book_title`, `author_name`, and cover images are fetched live from the Google Books API by
+`ISBN`, not carried as synthetic columns. Results are cached in Supabase so each ISBN only ever
+hits the live API once. Full build plan: `docs/google-books-integration-plan.md`.
+
+**`books` table (Supabase) — the cache, source of truth for book display data:**
+
+| Column | Description | Format | Example Value |
+| :---- | :---- | :---- | :---- |
+| isbn | Primary key — same ISBN used in the shared columns above | string | 978-0-525-55948-1 |
+| title | Book title | string | The Midnight Library |
+| author | Author name | string | Matt Haig |
+| cover_image_url | Cover image, from Google Books | string (URL) | https://books.google.com/... |
+| found | False if Google Books had nothing for this ISBN (negative cache — don't re-request) | boolean | true |
+| cached_at | When this row was written | timestamp | 2026-08-24T15:02:00Z |
 
 ## Team Sign-Off
 
