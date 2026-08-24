@@ -1,14 +1,14 @@
 # Riverside Books — Team 5
 
-A four-product build for Riverside Books, a single-location independent bookstore. One monorepo,
+A four product build for Riverside Books, a single location independent bookstore. One monorepo,
 one shared data contract, four products built by four teammates.
 
 ## Products
 
 | Product | Owner | Path | What it does |
 | :---- | :---- | :---- | :---- |
-| A — Customer Ordering & Loyalty App | Jeffrey de la Cruz | `apps/product-a/` | Customer-facing ordering and loyalty rewards |
-| B — Staff Inventory & Ops Dashboard | Philip Myers | `apps/product-b/` | Flags low/out-of-stock titles, tracks pending pre-orders for staff |
+| A - Customer Ordering & Loyalty App | Jeffrey de la Cruz | `apps/product-a/` | Customer facing ordering and loyalty rewards |
+| B — Staff Inventory & Ops Dashboard | Philip Myers | `apps/product-b/` | Flags low/out of stock titles, tracks pending pre orders for staff |
 | C — Customer Support Chatbot | Priscilla Batroni | `apps/product-c/` | Onboarding — plan not yet set |
 | D — Marketing Content Generator | Dominic Arlequin | `apps/product-d/` | Generates email campaigns, social posts, and event promos |
 
