@@ -8,8 +8,9 @@
   the `ISBN` parameter and the internal `await fetchBookMetadata(isbn)` call it currently makes.
   The caller becomes responsible for resolving `title`/`author`/`genre` before calling
   `generateContent()`, via a separate ISBN → `{ title, author, genre }` lookup function —
-  deliberately out of scope for this task, pending a team decision on whether that lookup reads
-  from Supabase or Open Library.
+  deliberately out of scope for this task. (Sourcing update: this was originally pending a team
+  decision on Supabase vs. Open Library; PR #3 settled it on Google Books, cached in a new
+  Supabase `books` table — see `docs/google-books-integration-plan.md`.)
   Real alternative considered: keep `bookMetadata` in the return but have the caller pass it in,
   instead of flattening to bare fields. Rejected — downstream consumers (e.g. `app/page.tsx`)
   would still have to unwrap a nested, possibly-null object just to read a title; flat fields are
@@ -69,21 +70,21 @@
     `event_date`. Not a new problem introduced by this task — flagged here for visibility only.
 
 - Open Questions:
-  1. Does `eventDataIncomplete` stay in the return, computed from just `event_title` +
-     `event_date`, or does it get dropped along with `event_description`? ("3 cards out" was
-     explicit in the brief; whether a 4th non-card flag survives alongside them wasn't.)
-  2. `genre` has no default/validation rule yet. If it's missing or empty, does `generateContent()`
-     default it (e.g. to `"general"`, matching `fetchBookMetadata`'s own bucket default), or is it
-     required and always guaranteed non-empty by the caller?
+  1. **Resolved:** `eventDataIncomplete` stays in the return, computed as a 2-input calculation:
+     `eventDataIncomplete = Boolean(event_title) && !event_date`. `event_description` is dropped
+     from the calculation entirely, since it's not part of the proposed flat input signature.
+  2. **Resolved:** `genre` is required, not defaulted. `generateContent()` assumes `genre` is
+     always a non-empty string, matching the signature as drafted (no `?`). The `"general"`
+     fallback already lives one layer up, in `fetchBookMetadata`'s `mapSubjectsToGenre()` — no
+     duplicate default inside the pure function.
   3. `apps/product-d/` in this monorepo is still on the pre-ISBN-lookup version of
      `contentGenerator.js` as of the 2026-08-20 bootstrap (per `SESSION_STATE.md`) — this refactor
      is scoped against Dominic's standalone working repo
      (`dominicarlequin-design/marketing-content-generator`), which has since diverged with the
      `fetchBookMetadata`/`lib/` work built this cycle. Does this refactor happen there and get
      synced into `apps/product-d/` afterward, or does `apps/product-d/` need syncing first?
-  4. `app/page.tsx` currently has an ISBN input field wired to the old signature. Once
-     `generateContent()` no longer accepts ISBN, does that field get hidden/removed from the form
-     until the lookup function ships, or left in place but visually disconnected?
+  4. **Resolved:** `app/page.tsx`'s ISBN input field gets hidden, not left in place visually
+     disconnected. Bring it back once the book-lookup function ships.
 
 - Tipping Point: If the upstream `ISBN → { title, author, genre }` lookup grows beyond a single
   call (e.g. needs to merge Open Library, the local catalog, and Supabase, with caching/retry
