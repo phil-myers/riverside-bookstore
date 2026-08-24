@@ -36,6 +36,24 @@ generating real data or building order-status logic until the team picks an answ
 
 ---
 
+## 2026-08-24 — order_status enum resolved for Product A; orders/order_items adopted as Product A working assumption
+
+Jeffrey confirmed, ahead of starting Product A's build:
+
+1. **Item 1 resolved.** Product A uses the schema's `order_status` enum as-is —
+   `Completed, pending, Shipped, preorder`. No local variant. Updated in
+   `docs/schema/riverside-books-schema.md`.
+2. **Item 2 not yet fully resolved, but Product A is proceeding against it.** The
+   `orders`/`order_items` two-table split is still only "agreed in principle" per the team, not
+   confirmed by Philip, Priscilla, or Dominic. Jeffrey signed off on it for Product A's own build
+   starting today. The tables are **not** added to the canonical schema list in
+   `riverside-books-schema.md` — that still needs the full team's nod first. If another product
+   ends up needing a different shape for orders, this working assumption may need revisiting.
+3. **Item 3 (Product D's order_status variant) is still open.** Not addressed by this decision —
+   still needs a team conversation with Dominic.
+
+---
+
 ## 2026-08-24 — Missing `price` column flagged (new open item 4)
 
 While building Product A's cart, found there is no `price` column anywhere in
