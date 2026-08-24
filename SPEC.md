@@ -16,11 +16,19 @@
   simpler at the call site.
 
 - Inputs/Outputs:
-  - **Current**: `generateContent(book: { book_title, author_name?, ISBN?, event_title?,
-    'Author Events'?, event_description? })` → `Promise<{ instagramCaption, newsletterBlurb,
-    staffPickCard: { title, note, badge }, bookMetadata: BookMetadata | null, eventDataIncomplete
-    }>`. Impure — awaits `fetchBookMetadata(ISBN)` internally when `ISBN` is present (live Open
-    Library call, or the local-catalog fallback).
+  - **Current** (canonical, `apps/product-d/app/contentGenerator.js`): `export function
+    generateContent(book: { book_title, author_name?, ISBN?, event_title?, 'Author Events'?,
+    event_description? })` → `{ instagramCaption, newsletterBlurb, staffPickCard: { title, note,
+    badge }, eventDataIncomplete }`. Synchronous, no `Promise`. `book.ISBN` is read into a local
+    variable but never used for anything — no lookup, no fetch, nothing in this repo's version of
+    the function resolves ISBN to book metadata. There is no `bookMetadata` field in the return;
+    it was never added here.
+
+    This session's Open Library integration (ISBN lookup, `fetchBookMetadata`, async wiring,
+    `bookMetadata` in the return) exists only in the standalone repo
+    (`dominicarlequin-design/marketing-content-generator`) and has not reached `apps/product-d/`
+    — see `SESSION_STATE.md` and this product's `CLAUDE.md` > Open items for the `order_status`
+    conflict this also intersects with.
   - **Proposed**: `generateContent({ title, author, genre, event_title?, event_date? })` →
     `{ instagramCaption, newsletterBlurb, staffPickCard, ... }` — no `ISBN`, no `bookMetadata`, no
     internal fetch. Field names are intentionally renamed off the shared schema's
