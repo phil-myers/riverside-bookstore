@@ -28,5 +28,24 @@ PR. Each product's own `apps/*/CLAUDE.md` covers that product's build/test/run c
 
 ## Running each product
 
-- **Product D** (only one built so far): `cd apps/product-d && npm install && npm run dev`
-- Products A, B, C: not yet built — see each product's `SESSION_STATE.md` for status.
+- **Product D**: `cd apps/product-d && npm install && npm run dev`
+- **Product A**: `cd apps/product-a && npm install && npm run dev` (or `bun install && bun run dev`
+  if you don't have Node — this repo's `package.json` scripts work with either). Not yet merged
+  to `main` — see "In-flight work" below.
+- Products B, C: not yet built on `main` — see each product's `SESSION_STATE.md` for status.
+  (Product B has a scaffold branch in flight too; check `git branch -r`.)
+
+## In-flight work (not yet merged to `main`)
+
+Product A has a stack of feature branches ready for PR review, each building on the last:
+`product-a/scaffold-nextjs-app` → `catalog-browse` → `cart-ui` → `auth-spec` →
+`order-placement` → `nav-auth-links` → `pricing` → `cart-lint-fix`. Together they cover: catalog
+browse, a client-side cart with real per-line and order totals, email/password auth via Supabase,
+and order placement (atomic stock decrement, no partial writes on failure). Loyalty points are
+not built yet. See `apps/product-a/SESSION_STATE.md` for exactly what's verified live vs. not —
+most of it was built and tested without a live Supabase project connected, so read that before
+assuming any of it works against real data.
+
+Two docs branches are also open: `docs/resolve-order-status-enum-product-a` (resolves schema
+open item 1) and `docs/flag-missing-price-column` (added the `price` column — see `DECISIONS.md`
+for a note on that one's missing team sign-off).
