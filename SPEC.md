@@ -10,7 +10,10 @@
   `generateContent()`, via a separate ISBN → `{ title, author, genre }` lookup function —
   deliberately out of scope for this task. (Sourcing update: this was originally pending a team
   decision on Supabase vs. Open Library; PR #3 settled it on Google Books, cached in a new
-  Supabase `books` table — see `docs/google-books-integration-plan.md`.)
+  Supabase `books` table — see `docs/google-books-integration-plan.md`.) Note: sourcing shown
+  here is illustrative. Actual source is Google Books per PR #3, resolved separately as part of
+  the fetchBookMetadata migration — this spec covers the generateContent() signature refactor
+  only, independent of which API backs the lookup.
   Real alternative considered: keep `bookMetadata` in the return but have the caller pass it in,
   instead of flattening to bare fields. Rejected — downstream consumers (e.g. `app/page.tsx`)
   would still have to unwrap a nested, possibly-null object just to read a title; flat fields are
