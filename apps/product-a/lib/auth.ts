@@ -13,23 +13,16 @@ function notifyAuthChanged(): void {
   }
 }
 
-async function ensureCustomerRow(authUserId: string): Promise<void> {
+async function ensureCustomerRow(): Promise<void> {
   const supabase = getSupabaseClient();
   if (!supabase) {
     return;
   }
 
-  const { data: existing } = await supabase
-    .from("customers")
-    .select("customer_id")
-    .eq("auth_user_id", authUserId)
-    .maybeSingle();
-
-  if (existing) {
-    return;
-  }
-
-  const { error } = await supabase.from("customers").insert({ auth_user_id: authUserId });
+  // create_customer_row is idempotent (returns the existing row's id if one already exists) and
+  // derives auth_user_id from auth.uid() server-side — a direct client-side insert would let any
+  // signed-up user set reward_points (or any other column) to an arbitrary value themselves.
+  const { error } = await supabase.rpc("create_customer_row");
   if (error) {
     throw error;
   }
@@ -46,7 +39,7 @@ export async function signUp(email: string, password: string): Promise<AuthResul
     return { error: error.message };
   }
   if (data.user) {
-    await ensureCustomerRow(data.user.id);
+    await ensureCustomerRow();
     notifyAuthChanged();
   }
   return { error: null };
@@ -63,7 +56,7 @@ export async function signIn(email: string, password: string): Promise<AuthResul
     return { error: error.message };
   }
   if (data.user) {
-    await ensureCustomerRow(data.user.id);
+    await ensureCustomerRow();
     notifyAuthChanged();
   }
   return { error: null };

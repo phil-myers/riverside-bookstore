@@ -2,13 +2,21 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getCurrentCustomer, type CurrentCustomer } from "@/lib/auth";
+import { AUTH_CHANGED_EVENT, getCurrentCustomer, type CurrentCustomer } from "@/lib/auth";
 
 export default function AccountPage() {
   const [customer, setCustomer] = useState<CurrentCustomer | null | "loading">("loading");
 
   useEffect(() => {
     getCurrentCustomer().then(setCustomer);
+
+    // Logging out/in via the nav while already sitting on /account doesn't remount this page, so
+    // without this, the displayed account data (or the login gate) would go stale.
+    function handleAuthChanged() {
+      getCurrentCustomer().then(setCustomer);
+    }
+    window.addEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
+    return () => window.removeEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
   }, []);
 
   return (

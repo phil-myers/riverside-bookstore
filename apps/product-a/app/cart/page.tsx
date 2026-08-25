@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { clearCart, removeFromCart, setQuantity, useCartItems } from "@/lib/cart";
-import { getCurrentCustomerId } from "@/lib/auth";
+import { AUTH_CHANGED_EVENT, getCurrentCustomerId } from "@/lib/auth";
 import { placeOrder } from "@/lib/orders";
 
 export default function CartPage() {
@@ -16,6 +16,14 @@ export default function CartPage() {
 
   useEffect(() => {
     getCurrentCustomerId().then(setCustomerId);
+
+    // Logging out/in via the nav while already sitting on /cart doesn't remount this page, so
+    // without this, the "Place order" button vs. "Log in to place an order" gate would go stale.
+    function handleAuthChanged() {
+      getCurrentCustomerId().then(setCustomerId);
+    }
+    window.addEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
+    return () => window.removeEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
   }, []);
 
   async function handlePlaceOrder() {
