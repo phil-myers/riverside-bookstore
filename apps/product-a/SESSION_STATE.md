@@ -383,3 +383,48 @@ so Product A does too rather than introducing a second test runner.
 **Actually run, not just written**: `bun run test` → 11 passed (11), real output pasted into
 this note, not claimed from reading the code. Re-ran `bun run lint` and `bun run build` after
 the `package.json` change to confirm nothing broke — both still pass.
+
+## 2026-08-25 — Wired up a real Supabase project, RLS + place_order hardening, 3 verification bugs
+
+Built on `product-a/supabase-live-wiring`, stacked on `origin/main`. Until now, everything above
+was verified either against sample data or against a Supabase project that never actually existed
+— this is the first session with a real project (`vijmagptblveajagjghw.supabase.co`) behind the
+app. That surfaced problems no amount of code review would have caught.
+
+- **RLS blocked every query.** A fresh Supabase project enables RLS by default with zero
+  policies on new tables — PostgREST returns `[]` for a blocked query, identical on the surface
+  to a genuinely empty table. Root-caused via `Prefer: count=exact` returning `content-range:
+  */0` (RLS's specific signature) versus the Table Editor showing all 8 seeded rows. Added
+  `supabase/migrations/0006_rls_and_order_security.sql`: public read on `books`; own-row
+  read/insert on `customers`; own-orders-only read on `orders`/`order_items`. No write policies
+  on `orders`/`order_items` for the authenticated role — every write goes through `place_order`,
+  so there's exactly one audited path that can create an order or move stock.
+- **`place_order` trusted a client-supplied `customer_id`.** Found while writing the RLS
+  policies: the original `place_order(p_customer_id text, p_items jsonb)` took `customer_id` as
+  a plain argument with nothing checking it matched whoever was actually signed in — any
+  authenticated user could place an order under someone else's `customer_id` via devtools.
+  Hardened to `place_order(p_items jsonb)`, `security definer`, deriving `customer_id` from
+  `auth.uid()` inside the function. Updated call sites: `lib/orders.ts`, `app/cart/page.tsx`.
+- **Three more bugs, all invisible under sample data:**
+  - `lib/supabase.ts` created a new `createClient()` (and new `GoTrueClient`) on every call
+    instead of a singleton — the literal cause of the "Multiple GoTrueClient instances" console
+    warning, and a real source of unreliable session state. Memoized to a module-level client.
+  - `AuthNav` lives in the root layout, so it never remounts on client-side navigation — its
+    one-shot effect ran once and never again, leaving the nav stuck on "Log in / Sign up" after
+    a real signup/login until a manual reload. Supabase's own `onAuthStateChange` fires *too
+    early* to fix this (before our own `ensureCustomerRow` insert completes) — used instead: an
+    explicit `product-a:auth-changed` event that `signUp`/`signIn`/`signOut` dispatch once the
+    customer row actually exists, which `AuthNav` listens for.
+  - `getOrderHistory` always showed "Unknown title" / $0.00 for every line item.
+    `order_items.isbn -> books.isbn` is many-to-one, so PostgREST embeds `books` as a plain
+    object, not an array — confirmed against the raw REST response — but the code read
+    `item.books?.[0]`, which is always `undefined` on an object.
+
+**Verified live** (real Supabase project, `/browse` end to end, not just `lint`/`build`):
+catalog loads all 8 real books with live covers/prices/stock; signup creates an account and the
+nav updates immediately with no reload; 2 books added to cart with correct total; order placed
+through the hardened `place_order` RPC (`ord_01000`, $33.98); order history shows correct
+titles/authors/prices; account page shows correct customer_id/email/signup date; ordering more
+than available stock (10 vs. 4) is rejected with the correct error and rolls back cleanly — no
+orphan order row, stock unchanged. `bun run lint` and `bun run build` clean after every change.
+PR: https://github.com/phil-myers/riverside-bookstore/pull/18.
