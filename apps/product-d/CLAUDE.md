@@ -33,7 +33,8 @@ Next.js 16 (App Router), TypeScript, Tailwind CSS v4, React 19.
 
 ## Open items affecting this product
 
-- `docs/schema/riverside-books-schema.md` open item 3: this product's own `README.md` declares an
-  `order_status` enum (`Pending, Ready for Pickup, Completed, Cancelled`) that matches neither the
-  shared schema nor (possibly) Product A's. Needs a team decision on one canonical enum, then a
-  follow-up change here once it's picked.
+- ~~`docs/schema/riverside-books-schema.md` open item 3~~ — resolved 2026-08-25, pending Jeffrey's
+  confirmation since `order_status` is also his column. The canonical enum was extended (not
+  replaced) to include `ready_for_pickup` and `cancelled`, so this product's own
+  `Ready for Pickup`/`Cancelled` values map onto real canonical values instead of a local variant.
+  See `DECISIONS.md`.
