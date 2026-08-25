@@ -20,6 +20,10 @@
    D has already built and pushed code against its own version. Needs a team conversation to pick
    one canonical enum, then updates to whichever product(s) don't match. See `DECISIONS.md`.
 
+4. **`price` column — resolved 2026-08-24.** Added below, alongside `stock_quantity` and
+   `reorder_threshold`: one `price` per `ISBN`, not per-order. Matches Jeffrey's own suggestion in
+   the original flag. See `DECISIONS.md`.
+
 ---
 
 # Data Schema Template (V2)
@@ -53,6 +57,7 @@ List every column your four products need to share. Below are the unified schema
 | stock_quantity | Total number of items currently available in inventory | integer | 40 |
 | reward_points | Total active loyalty points accumulated by the customer | integer | 250 |
 | reorder_threshold | Minimum stock quantity for this title before staff should reorder more copies | integer | 5 |
+| price | List price for the title, per unit (not per order) | decimal, USD | 19.99 |
 | quantity | Number of copies of a given title in an order | integer | 1 |
 
 ## Team Sign-Off

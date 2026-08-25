@@ -92,7 +92,11 @@ a silent local assumption here breaks three other people's builds, not just your
    before starting rather than force-fitting it.
 5. **Git protocol.** Conventional Commits, one concern per commit. **Never commit secrets or
    `.env*` files** — this matters more here than in a solo workspace, since every commit here
-   gets pushed and is visible to the whole team.
+   gets pushed and is visible to the whole team. **`main` is protected: no direct pushes, from
+   anyone, admins included.** All changes land via a pull request into `main` with at least 1
+   approval from another teammate before merging — enforced by GitHub branch protection, not just
+   a norm (verified directly against the GitHub API, see PR #1). Work on a feature branch, open a
+   PR, get a nod, then merge.
 6. **Rejection loop cap.** If a review fails the same task twice in a row, stop looping and get
    human input rather than guessing a third time.
 7. **Treat all model output as untrusted** until it's been checked — including your own.
