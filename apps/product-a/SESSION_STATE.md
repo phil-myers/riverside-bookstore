@@ -455,3 +455,43 @@ accumulate rather than overwrite). Attempted a 10-vs-4-in-stock order (same insu
 case as the order-placement spec) → rejected, and points stayed at 31 — confirms the rollback
 covers the points update too, not just the order/stock writes. `bun run lint` and `bun run
 build` clean.
+
+## 2026-08-25 — Review fixes: close the customers self-grant gap, add tests, fix stale auth state
+
+Ran `/review` (gstack) across the combined diff of PR #18 + #19 on `product-a/loyalty-points-earn`
+before merging. Found one critical, still-open security gap plus a few smaller real gaps; fixed
+all three approved batches:
+
+- **`customers` self-grant, closed.** `0006_rls_and_order_security.sql`'s own-row insert policy
+  meant any signed-up user could `insert` into `customers` directly from devtools with an
+  arbitrary `reward_points` value (e.g. `999999`) — the loyalty-points feature made a
+  pre-existing policy gap actually exploitable for the first time. `0008_customer_row_security.sql`
+  drops that insert policy and adds `create_customer_row()`, a `security definer` RPC deriving
+  `auth_user_id` from `auth.uid()` server-side (idempotent — returns the existing row's id if one
+  is already there). `lib/auth.ts`'s `ensureCustomerRow()` simplified to call the RPC instead of a
+  direct `.insert()`; no longer takes a `userId` parameter since it doesn't need one.
+- **Two smaller real gaps, also from the review:** `app/cart/page.tsx` and `app/account/page.tsx`
+  didn't listen for the `product-a:auth-changed` event `AuthNav` already used, so logging out while
+  sitting on either page left stale state (a "Place order" button or account data) until a manual
+  reload — same root cause as the nav bug fixed in the Supabase-live-wiring session, just two more
+  places it applied. Both pages now subscribe the same way. `0009_place_order_overload_guard.sql`
+  is a defensive no-op migration (`drop function if exists place_order(text, jsonb)`) guarding
+  against the pre-0006 `place_order` signature ever coexisting with the current one if migrations
+  run out of order.
+- **3 new Vitest files** (`lib/orders.test.ts`, `lib/supabase.test.ts`, `lib/auth.test.ts`) —
+  `placeOrder` never sends a client-supplied `customer_id` to the RPC; `getSupabaseClient()`
+  caches instead of re-instantiating; `signIn`/`signOut` dispatch `product-a:auth-changed` (and
+  `signIn` does NOT dispatch it on a failed login); `getCurrentCustomer()` maps `reward_points` →
+  `rewardPoints`. `bun run test`: 4 files, 21 passed (up from 11 in `cart.test.ts` alone).
+
+**Verified live** (real Supabase project, `/browse`), after running `0008`/`0009` in the SQL
+Editor: fresh signup through the new `create_customer_row` RPC path works end to end (nav updates
+immediately, account page shows the new customer with 0 points). Attempted the exact previously-
+working self-grant (`insert` into `customers` with `reward_points: 999999` using the signed-in
+user's real access token) — now rejected with Postgres `42501: new row violates row-level security
+policy for table "customers"`. Logged out while sitting on `/cart` (with an item in it) and
+separately on `/account` — both updated live (gate text / login prompt) with the URL unchanged, no
+reload. Placed a real order after all migrations (`ord_01005`, $18.99) to confirm `0009` didn't
+disturb `place_order` — succeeded, and the account page's points went from 0 → 18 (floor(18.99)),
+confirming the accumulation logic is intact. `bun run lint`, `bun run test` (21/21), and `bun run
+build` all clean.
