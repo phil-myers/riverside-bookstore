@@ -97,6 +97,15 @@ a silent local assumption here breaks three other people's builds, not just your
    approval from another teammate before merging — enforced by GitHub branch protection, not just
    a norm (verified directly against the GitHub API, see PR #1). Work on a feature branch, open a
    PR, get a nod, then merge.
+   **Exception, decided 2026-08-25:** Jeffrey de la Cruz and Philip Myers may merge their own
+   pull requests without waiting for another teammate's approval — Jeffrey in recognition of his
+   role helping collaborators finish their products, Philip as the repo owner running review
+   triage across all four products. A PR is still required for every change; this exception is
+   specifically about the approval wait, not about pushing directly to `main`. Everyone else's
+   PRs still need 1 approval from someone other than the author, same as before. Enforced via a
+   GitHub repository ruleset (bypass actors: `Jeffreys-World`, `phil-myers`), layered alongside
+   the existing branch protection rather than replacing it — force-push/deletion blocks, conversation
+   resolution, and the "no admin bypass" rule all still apply to everyone, Jeffrey included.
 6. **Rejection loop cap.** If a review fails the same task twice in a row, stop looping and get
    human input rather than guessing a third time.
 7. **Treat all model output as untrusted** until it's been checked — including your own.
