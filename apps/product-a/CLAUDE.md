@@ -22,8 +22,11 @@ Next.js 16 (App Router), TypeScript (strict), Tailwind CSS v4, React 19, Supabas
 
 ## Open items affecting this product
 
-- `docs/schema/riverside-books-schema.md` open item 1: does this product's `order_status` enum
-  include `preorder`? Needs a yes/no before Product B's Pending Preorders feature can be trusted.
+- ~~`docs/schema/riverside-books-schema.md` open item 1~~ — resolved 2026-08-24, see
+  `DECISIONS.md`. Product A uses the schema's `order_status` enum as-is: `Completed, pending,
+  Shipped, preorder`.
+- Building against the `orders`/`order_items` two-table split (schema item 2) as a working
+  assumption, not yet full-team-confirmed. See `DECISIONS.md` 2026-08-24 entry.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

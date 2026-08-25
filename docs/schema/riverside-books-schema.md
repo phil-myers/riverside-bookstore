@@ -1,16 +1,17 @@
 # OPEN ITEMS — unresolved, read before building against this schema
 
-1. **`order_status` enum conflict, unresolved (Product A vs. schema).** The schema below lists
-   `Completed, pending, Shipped, preorder`. Product A's own README.md/CLAUDE.md drafts (if ported
-   alongside — check with Jeffrey) may still declare a different enum with no `preorder` value at
-   all. If so, Product B's Pending Preorders feature silently breaks. Needs a yes/no from Jeffrey
-   before anyone generates real data against this schema.
+1. ~~**`order_status` enum conflict, unresolved (Product A vs. schema).**~~ **Resolved
+   2026-08-24.** Jeffrey confirmed Product A builds against the schema's enum as-is:
+   `Completed, pending, Shipped, preorder`. No local variant. See `DECISIONS.md`.
 
 2. **`orders` / `order_items` tables, agreed on but not yet written into the schema doc.** Decided
    this cycle: `orders` (`order_id`, `order_status`, `customer_id`) and `order_items` (`order_id`,
    `ISBN`, `quantity`) as two separate tables, specifically so `order_status` lives in exactly one
    place per order instead of risking drift across an order's multiple line items. Add these to
-   this schema file as soon as the team confirms, not before.
+   this schema file as soon as the team confirms, not before. **Product A is building against this
+   shape starting 2026-08-24 as a working assumption** (Jeffrey signed off for his own product);
+   this is not yet full-team confirmation and the tables stay out of the canonical list below
+   until Philip, Priscilla, and Dominic also confirm. See `DECISIONS.md`.
 
 3. **`order_status` enum conflict, confirmed (Product D vs. schema) — discovered during team-repo
    bootstrap, 2026-08-20.** Product D's already-committed `README.md` (now at
