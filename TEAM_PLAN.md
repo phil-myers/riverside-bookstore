@@ -44,7 +44,9 @@ closed on.
    should not require a decision, just needs doing.
 2. **Deployment.** Every product is ready to go live except for one thing: nobody has a hosting
    account yet. See `docs/DEPLOYMENT.md` for exactly what's needed once one exists — it's a short
-   mechanical task at that point, not a research problem.
+   mechanical task at that point, not a research problem. Which Supabase project is production is
+   now decided (Jeffrey's existing one — see `DECISIONS.md` 2026-08-25) — but before treating it
+   as truly live, **Jeffrey needs to review and clear out his own test data from it.**
 
 ---
 
@@ -59,10 +61,6 @@ closed on.
   been building against this shape all day (migrations, RLS, everything). Priscilla and Dominic
   haven't weighed in yet — low urgency since neither product touches orders directly right now,
   but it's a real decision still sitting open, not resolved by default.
-- **Which Supabase project counts as "production."** Jeffrey's development project has every
-  migration applied and has been verified live all day — is that the one Products A and B point
-  at once deployed, or does a fresh one get provisioned? If fresh, all 9 migrations need to run
-  on it before Product A works at all.
 - **Deployment account/platform.** `docs/DEPLOYMENT.md` recommends Vercel and explains why; the
   actual account and who holds it is a real decision, not something to default into.
 
@@ -85,7 +83,13 @@ closed on.
    showing real data instead of its sample-data fallback. Small, additive migration.
 2. **Look at the `order_status` enum extension** (`DECISIONS.md` 2026-08-25) and confirm you're
    good with it, or flag if it needs adjusting.
-3. Whatever's next on the backup-repo work you're focused on — not tracked here.
+3. **Before deployment: review your Supabase project's data and clear out your own test
+   accounts/orders.** It's been decided as the production database as-is (`DECISIONS.md`
+   2026-08-25) — nobody else can see what's currently in it to check this for you.
+4. **Share the project URL and anon key directly with whoever configures Vercel** — not through
+   the repo, not through an AI session, same as how the Google Books key got handled earlier
+   today.
+5. Whatever's next on the backup-repo work you're focused on — not tracked here.
 
 ## Philip — Product B (you)
 

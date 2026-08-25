@@ -5,13 +5,13 @@ Written 2026-08-25. Everything in this doc was verified directly against the act
 `process.env` usage) — not assumed. If it's stale by the time you read it, trust the code over
 this file and update it.
 
-## Status: one real blocker, and it's not code
+## Status: one real blocker left, and it's not code
 
 As of 2026-08-25, all four products have real, working, verified code on `main`. RLS is live,
 `order_status` is resolved, every product's `.env.example` (where one is needed) is accurate.
-**The only thing stopping a real deploy is that nobody has a hosting account set up yet.** This
-doc exists so that once one exists, the actual deploy is a short mechanical task instead of a
-research project.
+Which Supabase project is production is now decided (below). **The only thing stopping a real
+deploy is that nobody has a hosting account set up yet.** This doc exists so that once one
+exists, the actual deploy is a short mechanical task instead of a research project.
 
 ## Recommended platform: Vercel
 
@@ -24,20 +24,30 @@ comfortably covers four small apps like these.
 Alternatives (Netlify, Render, Railway) would work too, but Vercel is the path of least
 resistance for Next.js specifically and needs the least explaining.
 
-## Before deploying anything: the real open questions
+## Which Supabase project is production — decided 2026-08-25
 
-These are genuine decisions, not defaults to silently pick:
+**Jeffrey's existing Supabase project becomes production.** No fresh project gets provisioned.
+It already has all 9 migrations applied, RLS live, and has been verified end-to-end all day — so
+this avoids redoing real setup work. Products A and B both point their
+`NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY` at it.
 
-1. **Which Supabase project is "production"?** Jeffrey's been developing and verifying against a
-   real Supabase project all day (migrations `0001`–`0009` all applied, RLS live, verified end to
-   end). Is that project the one Products A and B point at in production, or does a fresh one get
-   provisioned? If fresh, **all 9 migrations need to be run on it, in order, before Product A
-   works at all** — this isn't optional setup, `place_order()`, RLS, and loyalty points don't
-   exist without them.
-2. **Who holds the Vercel account** (and its billing, if it ever grows past free tier)?
-3. **What seeds the production database?** The synthetic chaos-test CSV
-   (`docs/schema/riverside-books-integration-chaos-test.csv`) is explicitly test fixture data —
-   see `docs/schema/README.md` — not something to seed a real customer-facing deploy with as-is.
+**The tradeoff, worth knowing before calling this fully "live":** this project has been Jeffrey's
+own testing ground all day — whatever accounts, orders, or other rows he created while verifying
+things (signup flows, test orders, the insufficient-stock rejection case, and so on) are sitting
+in what's now the production database. Nobody on this end can see what's actually in there —
+Philip and Claude have never had the URL or key, only Jeffrey does. Worth having Jeffrey take a
+look and clear out anything that shouldn't be visible to a real customer before treating this as
+truly live, rather than assuming it's already clean.
+
+**The actual credentials still need to move from Jeffrey to whoever configures Vercel.** That
+should happen directly between people, not through this repo or through an AI session — the same
+way the Google Books key was handled earlier today. Once Jeffrey shares the project URL and anon
+key, they get typed straight into Vercel's environment variable settings for Products A and B.
+
+## Other open question
+
+**Who holds the Vercel account** (and its billing, if it ever grows past free tier)? Still an
+open decision.
 
 ## Per-product deploy steps
 
@@ -49,9 +59,8 @@ These are genuine decisions, not defaults to silently pick:
   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
   - `GOOGLE_BOOKS_API_KEY` — optional; catalog works without it, just no cover art. Server-side
     only, no `NEXT_PUBLIC_` prefix (never sent to the browser — see note below).
-- **Depends on:** the target Supabase project having all 9 migrations applied (see open question
-  1 above). Without them, this deploys fine but every real feature (RLS, orders, loyalty points)
-  is broken.
+- **Points at:** Jeffrey's existing Supabase project (decided above) — already has all 9
+  migrations applied, so this is ready as-is, not something to set up from scratch.
 
 ### Product B — Staff Inventory & Ops Dashboard
 - **Root Directory:** `apps/product-b`
@@ -91,6 +100,9 @@ prefix is what actually controls exposure.
 
 ## Post-deploy checklist
 
+- [ ] **Before going live: Jeffrey reviews his Supabase project's data** and clears out anything
+  from his own testing that shouldn't be visible to a real customer (test accounts, test orders,
+  etc.) — see the tradeoff noted above.
 - [ ] Smoke-test each of the 4 live URLs — page loads, no console errors.
 - [ ] Product A: sign up, add to cart, place an order, confirm it appears in order history and
   loyalty points update — the actual RLS/`place_order` path, not just that the page renders.
