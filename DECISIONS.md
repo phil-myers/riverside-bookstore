@@ -63,10 +63,13 @@ Product A can now compute real cart/order totals instead of omitting them.
 
 Jeffrey's Google Books lookup work surfaced 3 ISBNs in
 `docs/schema/riverside-books-integration-chaos-test.csv` that fail ISBN-13 checksum validation.
-Checking all 23 distinct ISBNs in the file (not just the ones one lookup happened to hit) found
-the real number is **11, not 3** — 9 fail checksum outright; 2 more (`Hamnet`,
-`The Four Winds`) pass checksum but resolved to the wrong book or nothing at all when looked up,
-so checksum validity alone doesn't prove an ISBN is correct.
+Checking every ISBN in the file (not just the ones one lookup happened to hit) found the real
+number is **11, not 3** — 9 fail checksum outright; 2 more (`Hamnet`, `The Four Winds`) pass
+checksum but resolved to the wrong book or nothing at all when looked up, so checksum validity
+alone doesn't prove an ISBN is correct. (The file has 23 distinct raw ISBN string values, but
+one of those is a deliberate chaos-row duplicate — Klara and the Sun's ISBN appears once
+hyphenated and once without hyphens, the same book both times — so 22 is the count of distinct
+actual books.)
 
 All 11 replaced with real, verified ISBN-13s — each one confirmed to both pass checksum and
 resolve to the correct title via an external lookup, not just generated to satisfy the check
