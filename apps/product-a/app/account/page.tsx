@@ -42,9 +42,7 @@ export default function AccountPage() {
           </div>
           <div className="flex justify-between py-3">
             <dt className="text-sm text-neutral-500">Loyalty points</dt>
-            <dd className="text-sm text-neutral-400">
-              Not built yet — no earn rate has been decided
-            </dd>
+            <dd className="text-sm">{customer.rewardPoints}</dd>
           </div>
         </dl>
       )}
