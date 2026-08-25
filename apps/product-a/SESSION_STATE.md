@@ -428,3 +428,30 @@ titles/authors/prices; account page shows correct customer_id/email/signup date;
 than available stock (10 vs. 4) is rejected with the correct error and rolls back cleanly — no
 orphan order row, stock unchanged. `bun run lint` and `bun run build` clean after every change.
 PR: https://github.com/phil-myers/riverside-bookstore/pull/18.
+
+## 2026-08-25 — Loyalty points: earn on order + display
+
+Built on `product-a/loyalty-points-earn`, stacked on `product-a/supabase-live-wiring` (needs
+`place_order`'s `security definer` shape from `0006_rls_and_order_security.sql`). Closes the open
+question the order-placement spec explicitly deferred: `reward_points` was already part of the
+shared schema and signed off by the whole team, but Product A never actually implemented the
+column, and no earn rate had been decided. Confirmed with Jeffrey: **1 point per $1 spent,
+floored on the order's total** (not per line item — avoids losing points to per-item rounding).
+
+- `supabase/migrations/0007_reward_points.sql` — adds `customers.reward_points integer not null
+  default 0`, and extends `place_order` to accumulate `price * quantity` across the order's items
+  during its existing stock-check loop, then `update customers set reward_points = reward_points +
+  floor(total)` in the same transaction as the order insert and stock decrement — so a rejected
+  order (insufficient stock, rolled back) never awards points, matching the existing INVARIANT
+  pattern rather than adding a second code path that could drift from it.
+- `lib/auth.ts` — `CurrentCustomer` gains `rewardPoints`; `getCurrentCustomer()`'s select gains
+  `reward_points`.
+- `app/account/page.tsx` — shows the real point total instead of "Not built yet."
+
+**Verified live** (real Supabase project, `/browse`): existing customer with one pre-migration
+order correctly shows 0 points (no retroactive backfill, as scoped in `SPEC.md`). Placed a
+$16.99 order → 16 points. Placed a second, $15.99 order → 31 points total (confirms points
+accumulate rather than overwrite). Attempted a 10-vs-4-in-stock order (same insufficient-stock
+case as the order-placement spec) → rejected, and points stayed at 31 — confirms the rollback
+covers the points update too, not just the order/stock writes. `bun run lint` and `bun run
+build` clean.

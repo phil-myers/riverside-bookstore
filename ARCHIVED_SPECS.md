@@ -2,6 +2,53 @@
 
 Completed specs are appended here, under a dated heading, when their work is done and verified.
 
+## 2026-08-25 — Product A — loyalty points: earn on order + display
+
+Fully verified live this session against the real Supabase project (see
+`apps/product-a/SESSION_STATE.md`, 2026-08-25 "Loyalty points" entry): a pre-migration order
+correctly shows 0 points (no backfill), a $16.99 order earned 16 points, a second $15.99 order
+brought the total to 31 (confirms accumulation, not overwrite), and a rejected insufficient-stock
+order left points unchanged at 31 (confirms the rollback covers the points update too).
+
+- Objective: Award loyalty points to a customer when their order is placed, and show their
+  accumulated total on `/account` instead of the current "Not built yet" placeholder.
+- Approach: `reward_points` is already part of the shared schema
+  (`docs/schema/riverside-books-schema.md`, team-signed-off) but was never actually implemented
+  in Product A's `customers` table — this adds the column, it isn't a new schema proposal.
+  Rate (confirmed with Jeffrey): **1 point per $1 spent, floored on the order's total** — not
+  per line item, so two $0.60 items (`$1.20` total) correctly earn 1 point instead of losing
+  points to per-item rounding (`floor(0.60) + floor(0.60) = 0`).
+  The award happens inside `place_order` itself (same `security definer` function from
+  `0006_rls_and_order_security.sql`), in the same transaction as the stock decrement and order
+  insert — matches the repo's Bounded AI rule (a deterministic calculation belongs in real code,
+  never estimated client-side) and the existing INVARIANT pattern (one failure anywhere in the
+  loop rolls back the whole transaction, so points are never awarded for an order that didn't
+  actually go through).
+  `place_order` already loops every item checking stock; this adds accumulating
+  `price * quantity` into a running total during that same loop, then one `update customers set
+  reward_points = reward_points + floor(total)` at the end, before returning.
+- Inputs/Outputs:
+  - Schema: `customers.reward_points integer not null default 0`.
+  - `place_order(p_items jsonb)` — same signature as today, no client-facing change. Internally
+    now also updates `customers.reward_points` for the derived `customer_id`.
+  - `lib/auth.ts`: `CurrentCustomer` gains `rewardPoints: number`; `getCurrentCustomer()`'s
+    select gains `reward_points`.
+  - `app/account/page.tsx`: replaces the "Not built yet — no earn rate has been decided" line
+    with the real `rewardPoints` value.
+- Verification: `bun run lint` / `bun run build` clean. Then live against the real Supabase
+  project (`/browse`): place an order with a known total, confirm `/account`'s points total
+  increases by `floor(total)`. Place a second order and confirm points accumulate (add, not
+  overwrite). Confirm a rejected order (insufficient stock) does not change `reward_points`.
+- Files: `apps/product-a/supabase/migrations/0007_reward_points.sql`, `apps/product-a/lib/auth.ts`,
+  `apps/product-a/app/account/page.tsx`, `apps/product-a/SESSION_STATE.md`.
+- Edge Cases: existing customers who placed orders before this migration runs do **not** get
+  retroactive points for those past orders (no backfill — reconstructing historical order totals
+  is out of scope unless asked for). New signups start at 0, matching the column default.
+- Open Questions: none blocking. Point **redemption** (spending points for a discount at
+  checkout) is explicitly out of scope — this spec is earn + display only.
+- Tipping Point: redemption/discount logic, tiered rates, or point expiry would each need their
+  own spec — meaningfully different scope (checkout math, not just an order-time side effect).
+
 ## 2026-08-25 — Product A — order placement
 
 Fully verified live this session against a real Supabase project (see

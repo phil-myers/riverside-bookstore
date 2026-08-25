@@ -82,6 +82,7 @@ export type CurrentCustomer = {
   customerId: string;
   email: string | null;
   signupDate: string | null;
+  rewardPoints: number;
 };
 
 export async function getCurrentCustomer(): Promise<CurrentCustomer | null> {
@@ -98,7 +99,7 @@ export async function getCurrentCustomer(): Promise<CurrentCustomer | null> {
 
   const { data } = await supabase
     .from("customers")
-    .select("customer_id, signup_date")
+    .select("customer_id, signup_date, reward_points")
     .eq("auth_user_id", authUser.id)
     .maybeSingle();
 
@@ -110,6 +111,7 @@ export async function getCurrentCustomer(): Promise<CurrentCustomer | null> {
     customerId: data.customer_id,
     email: authUser.email ?? null,
     signupDate: data.signup_date,
+    rewardPoints: data.reward_points,
   };
 }
 
