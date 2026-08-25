@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getCurrentCustomerId, signOut } from "@/lib/auth";
+import { AUTH_CHANGED_EVENT, getCurrentCustomerId, signOut } from "@/lib/auth";
 
 export function AuthNav() {
   const [customerId, setCustomerId] = useState<string | null>(null);
@@ -13,6 +13,16 @@ export function AuthNav() {
       setCustomerId(id);
       setLoaded(true);
     });
+
+    // AuthNav lives in the root layout, which persists across client-side
+    // navigations — the effect above only runs once, on first mount. Without
+    // this, logging in/up on /login or /signup (a `router.push` away, not a
+    // full reload) leaves the nav stuck showing "Log in" until a manual reload.
+    function handleAuthChanged() {
+      getCurrentCustomerId().then(setCustomerId);
+    }
+    window.addEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
+    return () => window.removeEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
   }, []);
 
   if (!loaded) {
