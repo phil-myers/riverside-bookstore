@@ -33,6 +33,15 @@ Not yet set up — commands go here once the project is scaffolded.
   three different candidate values across the schema doc, Product A, and Product D, still
   unresolved. The order-status feature above can't be built against a real value set until the
   team picks one — see `DECISIONS.md`.
+- **Order status is also blocked on two backend gaps, flagged in PR #17 review (Phil, 2026-08-25):**
+  no Row Level Security policies exist yet on `orders`/`order_items` (Jeffrey's open follow-up from
+  the order-placement work), so a public page reading orders with the anon key — combined with
+  sequential, guessable order IDs (`ord_01000`, `ord_01001`, ...) — could page through every
+  customer's order history. And separately, even once RLS exists, this chatbot has no login, so
+  there's no logged-in identity for RLS to filter on and no way yet for a customer to prove a given
+  order is theirs. Order-status lookup needs an answer to that identity question before it's built,
+  not just RLS turned on. Book info/availability and the store FAQ are unaffected — read-only
+  public data, no identity question involved.
 - Whether this product needs write access to Supabase (vs. read-only) hasn't come up yet — current
   scope (status lookup, info lookup) is read-only, so likely just an anon/read key, but flag this
   if that changes.
