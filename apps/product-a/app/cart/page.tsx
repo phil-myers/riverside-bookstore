@@ -25,7 +25,7 @@ export default function CartPage() {
     setPlacing(true);
     setOrderError(null);
 
-    const result = await placeOrder(customerId, items);
+    const result = await placeOrder(items);
     setPlacing(false);
 
     if (result.error) {
