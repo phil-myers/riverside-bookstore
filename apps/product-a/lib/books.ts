@@ -1,4 +1,5 @@
 import { getSupabaseClient } from "./supabase";
+import { getBookCoverByIsbn } from "./googleBooks";
 import type { Book } from "../types/book";
 
 export type BooksSource = "supabase" | "sample";
@@ -35,7 +36,15 @@ export async function getBooks(): Promise<BooksResult> {
   const supabase = getSupabaseClient();
 
   if (!supabase) {
-    return { books: SAMPLE_BOOKS, source: "sample" };
+    // Live cover art for sample data: no-op if GOOGLE_BOOKS_API_KEY isn't set (falls back to no
+    // cover, same as before), so this never blocks the sample-data path on a missing key.
+    const books = await Promise.all(
+      SAMPLE_BOOKS.map(async (book) => {
+        const cover = await getBookCoverByIsbn(book.isbn);
+        return cover.found ? { ...book, coverImageUrl: cover.coverImageUrl } : book;
+      }),
+    );
+    return { books, source: "sample" };
   }
 
   const { data, error } = await supabase
