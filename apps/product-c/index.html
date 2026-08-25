@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Riverside Books Help</title>
+    <meta
+      name="description"
+      content="Riverside Books customer support chatbot for order help, book questions, and store FAQs."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-block">
+          <div class="brand-icon">R</div>
+          <div>
+            <p class="eyebrow">Independent bookstore</p>
+            <h1>Riverside Books</h1>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button type="button" class="return-icon" aria-label="Return to homepage">
+            ↩
+          </button>
+          <nav class="topnav" aria-label="Main navigation">
+            <a href="#">Store</a>
+            <a href="#">Events</a>
+            <a href="#">Gift Cards</a>
+          </nav>
+        </div>
+      </header>
+
+      <main class="chat-layout">
+        <section class="chat-panel" aria-label="Chat with support">
+          <div class="chat-header">
+            <div>
+              <p class="eyebrow">Ask us anything</p>
+              <h2>Bookshop assistant</h2>
+            </div>
+            <span class="status-pill">Online</span>
+          </div>
+
+          <div id="chatMessages" class="chat-messages" aria-live="polite">
+            <div class="message message--bot">
+              <p>
+                Hi! I’m your Riverside Books assistant. I can help with order status,
+                pickup, store hours, returns, and personalized reading recommendations.
+              </p>
+            </div>
+          </div>
+
+          <div class="quick-prompts" id="quickPrompts" aria-label="Suggested questions"></div>
+
+          <form id="chatForm" class="chat-form">
+            <label class="sr-only" for="userInput">Type your message</label>
+            <input
+              id="userInput"
+              type="text"
+              placeholder="Type your question..."
+              autocomplete="off"
+            />
+            <button type="submit">Send</button>
+          </form>
+        </section>
+
+        <aside class="faq-panel" aria-label="Common questions">
+          <div class="faq-intro">
+            <p class="eyebrow">Need help fast?</p>
+            <h3>Popular questions</h3>
+          </div>
+          <div class="faq-list" id="faqList"></div>
+          <div class="support-card">
+            <p class="support-label">Still need a person? Email us</p>
+            <a href="mailto:support@riversidebooks.com">support@riversidebooks.com</a>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
