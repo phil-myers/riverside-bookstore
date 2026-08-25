@@ -164,3 +164,23 @@ and docs only.
 Product A also writes, he should still get a look at this — the change is additive and shouldn't
 require any code change on his end, but he owns that column in practice and deserves the chance
 to object before this is treated as fully settled.
+
+---
+
+## 2026-08-25 — Production Supabase project: Jeffrey's existing one, not a fresh one
+
+Philip decided: rather than provision a new Supabase project for production, Jeffrey's existing
+development project becomes production. It already has all 9 migrations applied and has been
+verified live end-to-end all day, so this avoids redoing that setup work from scratch.
+
+**Tradeoff, logged so it isn't silently missed:** that project has been Jeffrey's own testing
+ground all day. Whatever test accounts, test orders, or other rows he created while verifying
+things (signup flows, order placement, the insufficient-stock rejection case, etc.) are now
+sitting in what's the production database. Neither Philip nor Claude has ever had this project's
+URL or key — only Jeffrey does — so nobody on this end can confirm what's actually in it.
+**Before this is treated as truly live, Jeffrey should review the data and clear out anything
+that shouldn't be visible to a real customer.** See `docs/DEPLOYMENT.md`'s post-deploy checklist.
+
+The actual credentials (URL, anon key) still need to move from Jeffrey to whoever configures the
+hosting platform's environment variables — directly between people, not through this repo or
+through an AI session, same handling as the Google Books key earlier today.
