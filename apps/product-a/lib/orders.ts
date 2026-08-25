@@ -5,17 +5,13 @@ import type { Order } from "@/types/order";
 type PlaceOrderResult = { orderId: string; error: null } | { orderId: null; error: string };
 type OrderHistoryResult = { orders: Order[]; error: string | null };
 
-export async function placeOrder(
-  customerId: string,
-  items: CartItem[]
-): Promise<PlaceOrderResult> {
+export async function placeOrder(items: CartItem[]): Promise<PlaceOrderResult> {
   const supabase = getSupabaseClient();
   if (!supabase) {
     return { orderId: null, error: "Supabase isn't configured yet." };
   }
 
   const { data, error } = await supabase.rpc("place_order", {
-    p_customer_id: customerId,
     p_items: items.map((item) => ({ isbn: item.isbn, quantity: item.quantity })),
   });
 
