@@ -5,17 +5,13 @@ import type { Order } from "@/types/order";
 type PlaceOrderResult = { orderId: string; error: null } | { orderId: null; error: string };
 type OrderHistoryResult = { orders: Order[]; error: string | null };
 
-export async function placeOrder(
-  customerId: string,
-  items: CartItem[]
-): Promise<PlaceOrderResult> {
+export async function placeOrder(items: CartItem[]): Promise<PlaceOrderResult> {
   const supabase = getSupabaseClient();
   if (!supabase) {
     return { orderId: null, error: "Supabase isn't configured yet." };
   }
 
   const { data, error } = await supabase.rpc("place_order", {
-    p_customer_id: customerId,
     p_items: items.map((item) => ({ isbn: item.isbn, quantity: item.quantity })),
   });
 
@@ -46,9 +42,14 @@ export async function getOrderHistory(customerId: string): Promise<OrderHistoryR
     orderId: row.order_id,
     status: row.order_status,
     items: (row.order_items ?? []).map((item) => {
-      // Supabase infers embedded relations as arrays without an explicit Database type; this
-      // FK (order_items.isbn -> books.isbn) is actually one book per row, so take the first.
-      const book = item.books?.[0];
+      // order_items.isbn -> books.isbn is many-to-one, so PostgREST embeds it as a single
+      // object, not an array (confirmed against the live REST response) — the query builder's
+      // structural inference guesses an array here since there's no generated Database type.
+      const book = item.books as unknown as {
+        title: string;
+        author: string;
+        price: number;
+      } | null;
       return {
         isbn: item.isbn,
         title: book?.title ?? "Unknown title",
