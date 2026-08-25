@@ -56,3 +56,45 @@ Deliberately **not** sourced from the Google Books API (`docs/google-books-integ
 still under review) — retail price is Riverside's own decision, not book metadata, and Google's
 pricing data (where present at all) reflects Google Play Books sales, not what the store charges.
 Product A can now compute real cart/order totals instead of omitting them.
+
+---
+
+## 2026-08-25 — Fixed 11 invalid ISBNs in the synthetic dataset (corrects earlier "3" figure)
+
+Jeffrey's Google Books lookup work surfaced 3 ISBNs in
+`docs/schema/riverside-books-integration-chaos-test.csv` that fail ISBN-13 checksum validation.
+Checking every ISBN in the file (not just the ones one lookup happened to hit) found the real
+number is **11, not 3** — 9 fail checksum outright; 2 more (`Hamnet`, `The Four Winds`) pass
+checksum but resolved to the wrong book or nothing at all when looked up, so checksum validity
+alone doesn't prove an ISBN is correct. (The file has 23 distinct raw ISBN string values, but
+one of those is a deliberate chaos-row duplicate — Klara and the Sun's ISBN appears once
+hyphenated and once without hyphens, the same book both times — so 22 is the count of distinct
+actual books.)
+
+All 11 replaced with real, verified ISBN-13s — each one confirmed to both pass checksum and
+resolve to the correct title via an external lookup, not just generated to satisfy the check
+digit:
+
+| Title | Old (broken) | New (verified) |
+|---|---|---|
+| A Court of Thorns and Roses | 978-1-61963-091-4 | 978-1-490-67662-3 |
+| Anxious People | 978-1-9848-2528-7 | 978-1-797-10582-6 |
+| Circe | 978-0-316-55635-9 | 978-0-316-55634-7 |
+| The Silent Patient | 978-1-250-30170-7 | 978-1-250-30169-7 |
+| Where the Forest Meets the Stars | 978-1-4926-5808-6 | 978-1-503-95991-0 |
+| The Seven Husbands of Evelyn Hugo | 978-1-5011-6193-4 | 978-1-668-08178-5 |
+| The Song of Achilles | 978-0-06-201671-9 | 978-1-408-82613-3 |
+| Normal People | 978-1-9848-2214-9 | 978-1-528-81312-9 |
+| The Guest List | 978-0-06-294628-4 | 978-1-094-15644-6 |
+| Hamnet | 978-0-525-65733-0 | 978-0-525-61717-4 |
+| The Four Winds | 978-1-250-17821-3 | 978-1-529-05457-6 |
+
+Note for whoever runs Dominic's genre-classification spot-check: a few of these verified ISBNs
+are audiobook/large-print editions rather than the primary print edition. They're real and
+correctly titled, so they're valid for that purpose, but their category metadata may be sparser
+than a mainstream print edition's — worth knowing if match-rate results look off for these
+specific titles.
+
+**The rest of the file (the 100-row structure, the two clean/chaos zones, the one remaining
+intentionally-invalid ISBN in the chaos section) is unchanged.** See the new
+`docs/schema/README.md` for what the chaos section is for and why it should never be "cleaned."
