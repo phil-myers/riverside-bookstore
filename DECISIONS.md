@@ -116,3 +116,51 @@ specific titles.
 **The rest of the file (the 100-row structure, the two clean/chaos zones, the one remaining
 intentionally-invalid ISBN in the chaos section) is unchanged.** See the new
 `docs/schema/README.md` for what the chaos section is for and why it should never be "cleaned."
+
+---
+
+## 2026-08-25 — `order_status` enum extended to 6 values (resolves schema item 3, pending Jeffrey)
+
+Dominic gave Philip explicit sign-off to resolve Product D's `order_status` mismatch (schema item
+3) directly, since Dominic was present but not driving at the time.
+
+Investigated before picking a fix, rather than just relabeling Product D's data to fit the
+existing 4 values:
+
+- Checked whether "pickup" as a fulfillment concept exists anywhere else in the real system — it
+  doesn't. Not in the shared schema, not in Product A's actual `orders` table. It only existed in
+  Product D's own invented enum and in Product C's chatbot FAQ copy (generic canned text, not
+  backed by real order data).
+- Checked whether Product D's actual code (`generate_post.py`, `contentGenerator.js`) branches on
+  `order_status` at all — it doesn't, today. But Product D's own `README.md` describes a planned
+  feature: a social-share post triggered by `order_status` becoming `Completed`. Labeling an
+  in-store pickup order as `Shipped` (the closest existing value) would eventually make that
+  feature generate factually wrong customer-facing copy — telling a customer their book shipped
+  when it's sitting on a shelf waiting for them. That's a real, concrete harm, not just an
+  imprecise label.
+- `Cancelled` had no equivalent in the schema at all — none of `preorder, pending, Shipped,
+  Completed` represent a voided order, and misclassifying it as any of them would corrupt future
+  fulfillment/sales reporting.
+
+**Decision:** extend the canonical `order_status` enum from 4 values to 6:
+`preorder, pending, Shipped, ready_for_pickup, Completed, cancelled`. Purely additive — Product
+A's live `order_status` column is plain `text` with no DB-level enum constraint, so this doesn't
+break anything already built; it just makes two more values legal.
+
+Applied to `docs/schema/riverside-books-schema.md` (open item 3, marked resolved) and
+`apps/product-d/README.md`/`CLAUDE.md` (updated to reference the canonical enum instead of its
+own variant), plus a relabel of the affected rows in
+`apps/product-d/marketing_content_generator_synthetic_data.csv` (`Pending` → `pending`,
+`Ready for Pickup` → `ready_for_pickup`, `Cancelled` → `cancelled`; same underlying 30 rows, no
+data added or removed). Also found and fixed one unrelated pre-existing slip while in the file: a
+single row had `processing` (lowercase, matching none of Product D's original 4 values either) —
+folded into `pending`, a low-stakes call since it's one row with no distinct meaning worth
+preserving separately, unlike the pickup/cancelled cases above. Confirmed first that nothing in
+Product D's actual code (`generate_post.py`, `contentGenerator.js`) reads `order_status` at all
+today, so none of this affects live behavior — it's a correctness/consistency fix for the data
+and docs only.
+
+**Not fully closed:** Jeffrey wasn't part of this conversation. Since `order_status` is a column
+Product A also writes, he should still get a look at this — the change is additive and shouldn't
+require any code change on his end, but he owns that column in practice and deserves the chance
+to object before this is treated as fully settled.

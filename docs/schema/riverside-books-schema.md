@@ -13,13 +13,18 @@
    this is not yet full-team confirmation and the tables stay out of the canonical list below
    until Philip, Priscilla, and Dominic also confirm. See `DECISIONS.md`.
 
-3. **`order_status` enum conflict, confirmed (Product D vs. schema) — discovered during team-repo
-   bootstrap, 2026-08-20.** Product D's already-committed `README.md` (now at
-   `apps/product-d/README.md`) declares a *third* variant: `Pending, Ready for Pickup, Completed,
-   Cancelled`. This matches neither the schema below (`Completed, pending, Shipped, preorder`) nor
-   whatever Product A turns out to have (item 1). This is live drift, not a hypothetical — Product
-   D has already built and pushed code against its own version. Needs a team conversation to pick
-   one canonical enum, then updates to whichever product(s) don't match. See `DECISIONS.md`.
+3. **`order_status` enum conflict, Product D vs. schema — resolved 2026-08-25, pending Jeffrey's
+   confirmation.** Product D's variant (`Pending, Ready for Pickup, Completed, Cancelled`) turned
+   out to be flagging a real gap in the schema, not just a naming mismatch: the schema had no way
+   to represent an in-store pickup order or a cancelled order at all. Rather than force Product
+   D's data into a lossy label (an in-store pickup order is not "Shipped" — mislabeling it that
+   way risks generating literally wrong customer-facing copy from Product D's planned
+   order-status-triggered content feature), the canonical enum is extended to 6 values:
+   `preorder, pending, Shipped, ready_for_pickup, Completed, cancelled`. Purely additive — Product
+   A's live `order_status` column is plain `text` with no DB-level enum constraint, so this adds
+   two legal values without breaking anything already built. Decided by Philip and Dominic
+   together (Dominic present, gave explicit sign-off); Jeffrey wasn't in the room, so this is
+   logged as **pending his confirmation**, not fully closed — see `DECISIONS.md`.
 
 4. **`price` column — resolved 2026-08-24.** Added below, alongside `stock_quantity` and
    `reorder_threshold`: one `price` per `ISBN`, not per-order. Matches Jeffrey's own suggestion in
@@ -54,7 +59,7 @@ List every column your four products need to share. Below are the unified schema
 | Ticket ID (for events) | Ticket ID for events such as book signings | string | 2026-03-14-42 |
 | Non Book UPC | Barcode for non-book items | string | 012345678905 |
 | order_id | Unique identifier for an order | string | ord_98765 |
-| order_status | Current processing state of the order | string (enum) | Completed, pending, Shipped, preorder |
+| order_status | Current processing state of the order | string (enum) | preorder, pending, Shipped, ready_for_pickup, Completed, cancelled |
 | stock_quantity | Total number of items currently available in inventory | integer | 40 |
 | reward_points | Total active loyalty points accumulated by the customer | integer | 250 |
 | reorder_threshold | Minimum stock quantity for this title before staff should reorder more copies | integer | 5 |

@@ -35,7 +35,7 @@ loyalty data from the other three products:
 | Ticket ID | TEXT, format `tkt_XXXXX` | tkt_00042 |
 | stock_quantity | INTEGER (must never be < 0) | 12 |
 | order_id | TEXT, format `ord_XXXXX` | ord_98765 |
-| order_status | ENUM: Pending, Ready for Pickup, Completed, Cancelled | Completed |
+| order_status | ENUM: preorder, pending, Shipped, ready_for_pickup, Completed, cancelled — canonical enum, see `docs/schema/riverside-books-schema.md` | Completed |
 | reward_points | INTEGER | 250 |
 
 ## Future Features (not yet built)
@@ -46,4 +46,7 @@ loyalty data from the other three products:
   threshold, `order_status` becoming `Completed`) to social media. This
   would require a new post-generation path in this product, separate from
   the current ISBN-based book announcement flow, since it generates
-  milestone/order content instead of book content.
+  milestone/order content instead of book content. Note: `Completed` now
+  specifically means the customer has the book in hand — an in-store
+  pickup order that's ready but not yet collected is `ready_for_pickup`,
+  a distinct value, so this feature won't fire early for pickup orders.
