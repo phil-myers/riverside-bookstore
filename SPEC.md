@@ -14,7 +14,8 @@
   with no interactivity yet, so a server component avoids an unnecessary API surface.
 
 - Inputs/Outputs:
-  - Reads `books`: `"ISBN"`, `book_title`, `author_name`, `stock_quantity`, `reorder_threshold`.
+  - Reads `books`: `isbn`, `title`, `author`, `stock_quantity`, `reorder_threshold` (column names
+    per `0005_google_books_schema.sql`'s rename, not the original `0001_books.sql` names).
   - `lib/inventory.ts`: `classifyStock(stock, threshold): StockStatus` (pure, unit-testable
     without a live DB) and `getInventoryStatus(): Promise<{ books: BookStockRow[], source:
     "supabase" | "sample" }>`.
@@ -41,8 +42,9 @@
 
 - Open Questions:
   1. `reorder_threshold` doesn't exist on the live `books` table yet — confirmed by reading
-     Product A's actual migrations directly (only `"ISBN"`, `book_title`, `author_name`,
-     `stock_quantity` exist there, plus `price` and Google Books columns added later). It's in
+     every one of Product A's actual migrations in order (`isbn`/`title`/`author`/
+     `stock_quantity`/`price` exist there, after `0005`'s rename from the original
+     `"ISBN"`/`book_title`/`author_name`, plus the Google Books columns). It's in
      the team-signed-off shared schema doc and the synthetic CSV, but never added to the real
      table. Per root `CLAUDE.md`'s "don't invent a shared column unilaterally" — even though it's
      already schema-approved, actually adding it to Product A's live table/migrations needs

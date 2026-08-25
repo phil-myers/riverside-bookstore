@@ -64,21 +64,23 @@ export async function getInventoryStatus(): Promise<InventoryResult> {
     return { books: sortByUrgency(rows), source: "sample" };
   }
 
-  // reorder_threshold isn't on the live table yet (SPEC.md Open Question 1) — this query will
-  // fail with a clear Postgres "column does not exist" error until that's added, rather than
-  // silently defaulting every book to some made-up threshold.
+  // Column names match apps/product-a/supabase/migrations/0005_google_books_schema.sql, which
+  // renamed "ISBN"/book_title/author_name to isbn/title/author. reorder_threshold isn't on the
+  // live table yet (SPEC.md Open Question 1) — this query will fail with a clear Postgres
+  // "column does not exist" error until that's added, rather than silently defaulting every book
+  // to some made-up threshold.
   const { data, error } = await supabase
     .from("books")
-    .select('"ISBN", book_title, author_name, stock_quantity, reorder_threshold');
+    .select("isbn, title, author, stock_quantity, reorder_threshold");
 
   if (error) {
     throw error;
   }
 
   const rows: BookStockRow[] = (data ?? []).map((row) => ({
-    isbn: row.ISBN,
-    title: row.book_title,
-    author: row.author_name,
+    isbn: row.isbn,
+    title: row.title,
+    author: row.author,
     stockQuantity: row.stock_quantity,
     reorderThreshold: row.reorder_threshold,
     status: classifyStock(row.stock_quantity, row.reorder_threshold),
