@@ -4,6 +4,11 @@ import { useRef, useState } from "react";
 import { generateContent } from "../lib/generator";
 import { fetchBookCover } from "../lib/fetchBookCover";
 
+// Product A isn't always the same URL locally vs. deployed -- same pattern as Product B's link
+// back to the homepage. NEXT_PUBLIC_ vars are inlined at build time, so this works fine from a
+// client component too.
+const HOMEPAGE_URL = process.env.NEXT_PUBLIC_PRODUCT_A_URL || "http://localhost:3000";
+
 type ContentType = "instagram" | "newsletter" | "staffpick";
 
 interface GeneratedContent {
@@ -112,6 +117,12 @@ export default function Home() {
     <main className="min-h-screen bg-stone px-6 py-12 md:px-12">
       <div className="mx-auto max-w-5xl">
         <header className="mb-10">
+          <a
+            href={HOMEPAGE_URL}
+            className="mb-2 inline-block font-mono text-xs uppercase tracking-widest text-forest/70 hover:text-forest"
+          >
+            ← Riverside Books
+          </a>
           <p className="font-mono text-xs uppercase tracking-widest text-forest">
             Riverside Books · Staff Tool
           </p>
