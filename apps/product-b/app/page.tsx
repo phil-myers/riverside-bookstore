@@ -40,6 +40,9 @@ export default async function Home() {
           <thead>
             <tr className="border-b border-neutral-300">
               <th scope="col" className="py-2 pr-4 font-medium">
+                <span className="sr-only">Cover</span>
+              </th>
+              <th scope="col" className="py-2 pr-4 font-medium">
                 Title
               </th>
               <th scope="col" className="py-2 pr-4 font-medium">
@@ -59,6 +62,22 @@ export default async function Home() {
           <tbody>
             {books.map((book) => (
               <tr key={book.isbn} className="border-b border-neutral-100">
+                <td className="py-2 pr-4">
+                  {book.coverUrl ? (
+                    // Same reasoning as Product A's catalog: no confirmed remote-image domain to
+                    // allowlist for next/image yet, so a plain <img> for now.
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={book.coverUrl}
+                      alt=""
+                      className="h-14 w-10 rounded-sm object-cover shadow-sm"
+                    />
+                  ) : (
+                    <div className="flex h-14 w-10 items-center justify-center rounded-sm bg-neutral-100 text-[9px] text-neutral-400">
+                      No cover
+                    </div>
+                  )}
+                </td>
                 <td className="py-2 pr-4">{book.title}</td>
                 <td className="py-2 pr-4 text-neutral-500">{book.author}</td>
                 <td className="py-2 pr-4">{book.stockQuantity}</td>

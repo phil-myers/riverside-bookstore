@@ -1,4 +1,9 @@
 import { getSupabaseClient } from "./supabase";
+import bookCovers from "./bookCovers.json";
+
+// Static, one-time-fetched cover data (see SPEC.md / scripts/fetch-book-covers.mjs) -- no live
+// API call, no write to the shared `books` table (Jeffrey's, shared with his own product).
+const staticCovers: Record<string, { coverUrl: string | null }> = bookCovers;
 
 export type StockStatus = "out-of-stock" | "low-stock" | "ok";
 
@@ -9,6 +14,7 @@ export type BookStockRow = {
   stockQuantity: number;
   reorderThreshold: number;
   status: StockStatus;
+  coverUrl: string | null;
 };
 
 export type InventorySource = "supabase" | "sample";
@@ -21,7 +27,7 @@ export type InventoryResult = {
 // Sample data for local dev / demos — also the only mode that currently works end-to-end, since
 // reorder_threshold doesn't exist on the live books table yet (see SPEC.md Open Question 1).
 // Values chosen to exercise all three status states plus the exact-threshold boundary.
-const SAMPLE_BOOKS: Omit<BookStockRow, "status">[] = [
+const SAMPLE_BOOKS: Omit<BookStockRow, "status" | "coverUrl">[] = [
   { isbn: "978-0-525-55948-1", title: "The Midnight Library", author: "Matt Haig", stockQuantity: 42, reorderThreshold: 5 },
   { isbn: "978-0-399-59050-4", title: "Educated", author: "Tara Westover", stockQuantity: 18, reorderThreshold: 4 },
   { isbn: "978-0-7352-1909-0", title: "Where the Crawdads Sing", author: "Delia Owens", stockQuantity: 3, reorderThreshold: 3 },
@@ -60,6 +66,7 @@ export async function getInventoryStatus(): Promise<InventoryResult> {
     const rows = SAMPLE_BOOKS.map((book) => ({
       ...book,
       status: classifyStock(book.stockQuantity, book.reorderThreshold),
+      coverUrl: staticCovers[book.isbn]?.coverUrl ?? null,
     }));
     return { books: sortByUrgency(rows), source: "sample" };
   }
@@ -84,6 +91,7 @@ export async function getInventoryStatus(): Promise<InventoryResult> {
     stockQuantity: row.stock_quantity,
     reorderThreshold: row.reorder_threshold,
     status: classifyStock(row.stock_quantity, row.reorder_threshold),
+    coverUrl: staticCovers[row.isbn]?.coverUrl ?? null,
   }));
 
   return { books: sortByUrgency(rows), source: "supabase" };

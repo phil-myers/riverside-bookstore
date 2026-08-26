@@ -1,6 +1,12 @@
 import { getSupabaseClient } from "./supabase";
 import { getBookCoverByIsbn } from "./googleBooks";
+import bookCovers from "./bookCovers.json";
 import type { Book } from "../types/book";
+
+// Static, one-time-fetched cover data (see SPEC.md / scripts/fetch-book-covers.mjs) -- used as a
+// fallback when the live `books` table's cover_image_url is null, which is every row today since
+// nothing else populates that column. No live API call, no write to the shared table.
+const staticCovers: Record<string, { coverUrl: string | null }> = bookCovers;
 
 export type BooksSource = "supabase" | "sample";
 
@@ -63,7 +69,7 @@ export async function getBooks(): Promise<BooksResult> {
     // Postgres numeric columns come back from Supabase as strings, not numbers, to avoid float
     // precision loss — coerce explicitly so .toFixed() etc. work on the live-data path too.
     price: Number(row.price),
-    coverImageUrl: row.cover_image_url,
+    coverImageUrl: row.cover_image_url ?? staticCovers[row.isbn]?.coverUrl ?? null,
   }));
 
   return { books, source: "supabase" };
