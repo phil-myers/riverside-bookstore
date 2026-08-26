@@ -49,8 +49,8 @@ export default function CartPage() {
   if (placedOrderId) {
     return (
       <main className="mx-auto max-w-2xl p-8">
-        <h1 className="text-2xl font-semibold">Order placed</h1>
-        <p className="mt-2 text-sm text-stone-500">
+        <h1 className="font-serif text-2xl font-semibold text-ink">Order placed</h1>
+        <p className="mt-2 text-sm text-ink/60">
           Order <span className="font-mono">{placedOrderId}</span> is pending
           {placedOrderTotal !== null && <> — ${placedOrderTotal.toFixed(2)}</>}.
         </p>
@@ -66,8 +66,8 @@ export default function CartPage() {
 
   return (
     <main className="mx-auto max-w-2xl p-8">
-      <h1 className="text-2xl font-semibold">Your cart</h1>
-      <p className="mb-6 text-sm text-stone-500">
+      <h1 className="font-serif text-2xl font-semibold text-ink">Your cart</h1>
+      <p className="mb-6 text-sm text-ink/60">
         {totalItems === 0 ? "Nothing here yet." : `${totalItems} item${totalItems === 1 ? "" : "s"}`}
       </p>
 
@@ -77,13 +77,13 @@ export default function CartPage() {
         </Link>
       ) : (
         <>
-          <ul className="divide-y divide-stone-200">
+          <ul className="divide-y divide-ink/10">
             {items.map((item) => (
               <li key={item.isbn} className="flex items-center justify-between py-3">
                 <div>
                   <p className="font-medium">{item.title}</p>
-                  <p className="text-sm text-stone-500">{item.author}</p>
-                  <p className="text-sm text-stone-700">
+                  <p className="text-sm text-ink/60">{item.author}</p>
+                  <p className="text-sm font-mono text-ink/80">
                     ${item.price.toFixed(2)} × {item.quantity} = $
                     {(item.price * item.quantity).toFixed(2)}
                   </p>
@@ -98,12 +98,12 @@ export default function CartPage() {
                     min={0}
                     value={item.quantity}
                     onChange={(event) => setQuantity(item.isbn, Number(event.target.value))}
-                    className="w-14 rounded border border-stone-300 px-2 py-1 text-sm"
+                    className="w-14 rounded-md border border-ink/20 bg-field px-2 py-1 text-sm text-ink"
                   />
                   <button
                     type="button"
                     onClick={() => removeFromCart(item.isbn)}
-                    className="text-xs text-red-600 underline"
+                    className="text-xs text-claret underline"
                   >
                     Remove
                   </button>
@@ -113,19 +113,19 @@ export default function CartPage() {
           </ul>
           <p className="mt-4 text-right text-sm font-medium">Total: ${totalPrice.toFixed(2)}</p>
 
-          {orderError && <p className="mt-4 text-sm text-red-600">{orderError}</p>}
+          {orderError && <p className="mt-4 text-sm text-claret">{orderError}</p>}
 
           {customerId ? (
             <button
               type="button"
               onClick={handlePlaceOrder}
               disabled={placing}
-              className="mt-4 rounded bg-stone-900 px-4 py-2 text-sm font-medium text-white disabled:bg-stone-300"
+              className="mt-4 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-paper hover:opacity-90 disabled:bg-ink/20"
             >
               {placing ? "Placing order…" : "Place order"}
             </button>
           ) : (
-            <p className="mt-4 text-sm text-stone-500">
+            <p className="mt-4 text-sm text-ink/60">
               <Link href="/login" className="underline">
                 Log in
               </Link>{" "}
