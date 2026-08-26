@@ -21,7 +21,7 @@ export function AddToCartButton({ book, disabled }: Props) {
         setAdded(true);
         setTimeout(() => setAdded(false), 1500);
       }}
-      className="rounded bg-neutral-900 px-3 py-1 text-xs font-medium text-white hover:bg-neutral-700 disabled:cursor-not-allowed disabled:bg-neutral-300"
+      className="rounded bg-stone-900 px-3 py-1 text-xs font-medium text-white hover:bg-stone-700 disabled:cursor-not-allowed disabled:bg-stone-300"
     >
       {disabled ? "Out of stock" : added ? "Added" : "Add to cart"}
     </button>

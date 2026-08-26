@@ -26,7 +26,7 @@ export default function AccountPage() {
       {customer === "loading" && null}
 
       {customer === null && (
-        <p className="mt-4 text-sm text-neutral-500">
+        <p className="mt-4 text-sm text-stone-500">
           <Link href="/login" className="underline">
             Log in
           </Link>{" "}
@@ -35,21 +35,21 @@ export default function AccountPage() {
       )}
 
       {customer && customer !== "loading" && (
-        <dl className="mt-6 divide-y divide-neutral-200">
+        <dl className="mt-6 divide-y divide-stone-200">
           <div className="flex justify-between py-3">
-            <dt className="text-sm text-neutral-500">Customer ID</dt>
+            <dt className="text-sm text-stone-500">Customer ID</dt>
             <dd className="font-mono text-sm">{customer.customerId}</dd>
           </div>
           <div className="flex justify-between py-3">
-            <dt className="text-sm text-neutral-500">Email</dt>
+            <dt className="text-sm text-stone-500">Email</dt>
             <dd className="text-sm">{customer.email ?? "—"}</dd>
           </div>
           <div className="flex justify-between py-3">
-            <dt className="text-sm text-neutral-500">Member since</dt>
+            <dt className="text-sm text-stone-500">Member since</dt>
             <dd className="text-sm">{customer.signupDate ?? "—"}</dd>
           </div>
           <div className="flex justify-between py-3">
-            <dt className="text-sm text-neutral-500">Loyalty points</dt>
+            <dt className="text-sm text-stone-500">Loyalty points</dt>
             <dd className="text-sm">{customer.rewardPoints}</dd>
           </div>
         </dl>

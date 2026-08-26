@@ -31,7 +31,7 @@ export default function OrdersPage() {
       {customerId === "loading" && null}
 
       {customerId === null && (
-        <p className="mt-4 text-sm text-neutral-500">
+        <p className="mt-4 text-sm text-stone-500">
           <Link href="/login" className="underline">
             Log in
           </Link>{" "}
@@ -42,7 +42,7 @@ export default function OrdersPage() {
       {customerId && error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
       {customerId && !error && orders.length === 0 && (
-        <p className="mt-4 text-sm text-neutral-500">
+        <p className="mt-4 text-sm text-stone-500">
           No orders yet.{" "}
           <Link href="/shop" className="underline">
             Browse the catalog
@@ -54,12 +54,12 @@ export default function OrdersPage() {
       {orders.map((order) => {
         const orderTotal = order.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
         return (
-          <div key={order.orderId} className="mt-6 rounded border border-neutral-200 p-4">
+          <div key={order.orderId} className="mt-6 rounded border border-stone-200 p-4">
             <div className="mb-2 flex items-center justify-between">
               <span className="font-mono text-sm">{order.orderId}</span>
-              <span className="text-xs uppercase text-neutral-500">{order.status}</span>
+              <span className="text-xs uppercase text-stone-500">{order.status}</span>
             </div>
-            <ul className="divide-y divide-neutral-200">
+            <ul className="divide-y divide-stone-200">
               {order.items.map((item) => (
                 <li key={item.isbn} className="flex justify-between py-2 text-sm">
                   <span>

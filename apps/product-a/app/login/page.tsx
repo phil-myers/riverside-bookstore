@@ -41,7 +41,7 @@ export default function LoginPage() {
           autoComplete="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className="rounded border border-neutral-300 px-3 py-2 text-sm"
+          className="rounded border border-stone-300 px-3 py-2 text-sm"
         />
         <label htmlFor="password" className="text-sm font-medium">
           Password
@@ -53,18 +53,18 @@ export default function LoginPage() {
           autoComplete="current-password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          className="rounded border border-neutral-300 px-3 py-2 text-sm"
+          className="rounded border border-stone-300 px-3 py-2 text-sm"
         />
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button
           type="submit"
           disabled={submitting}
-          className="rounded bg-neutral-900 px-3 py-2 text-sm font-medium text-white disabled:bg-neutral-300"
+          className="rounded bg-stone-900 px-3 py-2 text-sm font-medium text-white disabled:bg-stone-300"
         >
           {submitting ? "Logging in…" : "Log in"}
         </button>
       </form>
-      <p className="mt-4 text-sm text-neutral-500">
+      <p className="mt-4 text-sm text-stone-500">
         Need an account?{" "}
         <Link href="/signup" className="underline">
           Sign up
