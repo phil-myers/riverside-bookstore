@@ -2,6 +2,54 @@
 
 Completed specs are appended here, under a dated heading, when their work is done and verified.
 
+## 2026-08-26 — Product B — low-stock inventory flagging
+
+Shipped and live in production as of 2026-08-25 end of day (per session notes: "Product B's
+low-stock dashboard fully live (Jeffrey added the missing column)"). Open Question 1 below
+(`reorder_threshold` missing from the live table) is resolved — Jeffrey added the column.
+Archiving now since it was left sitting in `SPEC.md` past completion, blocking the next spec.
+
+- Objective: Give bookstore staff a dashboard view flagging which titles are low on or out of
+  stock, so they know what needs reordering without eyeballing raw numbers.
+
+- Approach: Server-side fetch of `stock_quantity`/`reorder_threshold` per book from the shared
+  `books` table, computed into a status (Out of Stock / Low Stock / OK) by a pure, deterministic
+  function — no AI involved in the classification, matching the repo's Bounded AI rule. Classify:
+  `stock_quantity <= 0` → Out of Stock; `0 < stock_quantity <= reorder_threshold` → Low Stock;
+  else → OK. Sorted most-urgent-first, then alphabetically within a status.
+  Alternative considered: client-side fetch + compute. Rejected — this is a read-only staff view
+  with no interactivity yet, so a server component avoids an unnecessary API surface.
+
+- Inputs/Outputs:
+  - Reads `books`: `isbn`, `title`, `author`, `stock_quantity`, `reorder_threshold` (column names
+    per `0005_google_books_schema.sql`'s rename, not the original `0001_books.sql` names).
+  - `lib/inventory.ts`: `classifyStock(stock, threshold): StockStatus` (pure, unit-testable
+    without a live DB) and `getInventoryStatus(): Promise<{ books: BookStockRow[], source:
+    "supabase" | "sample" }>`.
+  - A page rendering a table: Title / Author / Stock / Reorder Threshold / Status badge.
+
+- Verification: Unit tests on `classifyStock()` covering the three states plus the boundary case
+  (`stock === threshold` → Low Stock, and the defensive negative-stock case). Manual check against
+  a local sample-data fallback (mirrors Product A's `SAMPLE_BOOKS` pattern) confirming correct
+  badges and sort order, `npm run build` clean, zero console errors. Live-Supabase verification
+  was deferred pending Open Question 1 below — now resolved.
+
+- Files: `apps/product-b/lib/inventory.ts`, `apps/product-b/lib/inventory.test.ts`,
+  `apps/product-b/lib/supabase.ts`, `apps/product-b/app/page.tsx`,
+  `apps/product-b/.env.example`.
+
+- Edge Cases: `reorder_threshold` missing/null; empty catalog → empty state, not a crash;
+  `stock_quantity` negative (defended, treated as Out of Stock); tied urgency → secondary sort by
+  title.
+
+- Open Questions (both resolved by ship time):
+  1. `reorder_threshold` didn't exist on the live `books` table — Jeffrey added it.
+  2. Staff auth — assumed fine unauthenticated for v1 since `books` has no PII. Superseded
+     2026-08-26 by the shared staff login (PR #33), which now gates this whole product anyway.
+
+- Tipping Point: filtering/sorting UI, CSV export, or a "mark as reordered" workflow is a
+  follow-up spec — this one is view-only.
+
 ## 2026-08-25 — Product A — loyalty points: earn on order + display
 
 Fully verified live this session against the real Supabase project (see
