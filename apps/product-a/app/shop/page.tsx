@@ -6,7 +6,7 @@ export default async function Shop() {
 
   return (
     <main className="mx-auto max-w-2xl p-8">
-      <p className="mb-6 text-sm text-neutral-500">Browse what&apos;s on the shelf.</p>
+      <p className="mb-6 text-sm text-stone-500">Browse what&apos;s on the shelf.</p>
 
       {source === "sample" && (
         <p className="mb-6 rounded border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">
@@ -16,11 +16,11 @@ export default async function Shop() {
       )}
 
       {source === "supabase" && books.length === 0 && (
-        <p className="text-sm text-neutral-500">No books in the catalog yet.</p>
+        <p className="text-sm text-stone-500">No books in the catalog yet.</p>
       )}
 
       {books.length > 0 && (
-        <ul className="divide-y divide-neutral-200">
+        <ul className="divide-y divide-stone-200">
           {books.map((book) => (
             <li key={book.isbn} className="flex items-center gap-4 py-3">
               {book.coverImageUrl && (
@@ -37,9 +37,9 @@ export default async function Shop() {
               <div className="flex flex-1 items-center justify-between">
                 <div>
                   <p className="font-medium">{book.title}</p>
-                  <p className="text-sm text-neutral-500">{book.author}</p>
-                  <p className="text-sm text-neutral-700">${book.price.toFixed(2)}</p>
-                  <p className="text-xs text-neutral-400">
+                  <p className="text-sm text-stone-500">{book.author}</p>
+                  <p className="text-sm text-stone-700">${book.price.toFixed(2)}</p>
+                  <p className="text-xs text-stone-400">
                     {book.stockQuantity > 0 ? `${book.stockQuantity} in stock` : "Out of stock"}
                   </p>
                 </div>
