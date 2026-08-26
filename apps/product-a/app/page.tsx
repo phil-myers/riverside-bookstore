@@ -31,7 +31,7 @@ export default async function Home() {
       {featured.length > 0 && (
         <section className="mt-4 border-t border-ink/10 pt-8">
           <p className="mb-6 text-sm font-medium text-ink/70">On the shelf right now</p>
-          <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
             {featured.map((book) => (
               <FeaturedBookCard key={book.isbn} book={book} size="large" />
             ))}
