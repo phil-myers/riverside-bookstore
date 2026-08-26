@@ -22,13 +22,17 @@
         </div>
 
         <div class="header-actions">
-          <button type="button" class="return-icon" aria-label="Return to homepage">
+          <!-- Product A isn't deployed yet (see docs/DEPLOYMENT.md), so this points at its local
+          dev port -- update to the real URL once it's live. No build step here to inject an env
+          var the way the other products do, so it's a plain hardcoded link. -->
+          <a href="http://localhost:3000" class="return-icon" aria-label="Return to homepage">
             ↩
-          </button>
+          </a>
           <nav class="topnav" aria-label="Main navigation">
-            <a href="#">Store</a>
+            <a href="http://localhost:3000/shop">Store</a>
+            <!-- Events has no destination yet -- no product in this repo has built that page.
+            Left as "#" rather than pointing somewhere fake. -->
             <a href="#">Events</a>
-            <a href="#">Gift Cards</a>
           </nav>
         </div>
       </header>
