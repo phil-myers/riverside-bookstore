@@ -54,7 +54,7 @@ export default function CartPage() {
           Order <span className="font-mono">{placedOrderId}</span> is pending
           {placedOrderTotal !== null && <> — ${placedOrderTotal.toFixed(2)}</>}.
         </p>
-        <Link href="/" className="mt-6 inline-block text-sm underline">
+        <Link href="/shop" className="mt-6 inline-block text-sm underline">
           Back to the catalog
         </Link>
       </main>
@@ -72,7 +72,7 @@ export default function CartPage() {
       </p>
 
       {items.length === 0 ? (
-        <Link href="/" className="text-sm underline">
+        <Link href="/shop" className="text-sm underline">
           Browse the catalog
         </Link>
       ) : (

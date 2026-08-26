@@ -44,7 +44,7 @@ export default function OrdersPage() {
       {customerId && !error && orders.length === 0 && (
         <p className="mt-4 text-sm text-neutral-500">
           No orders yet.{" "}
-          <Link href="/" className="underline">
+          <Link href="/shop" className="underline">
             Browse the catalog
           </Link>
           .
