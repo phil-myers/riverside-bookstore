@@ -1,58 +1,74 @@
 # SPEC
 
-# [SPEC] Product B — low-stock inventory flagging
+# [SPEC] Real book cover images for Product A's live catalog and Product B's dashboard
 
-- Objective: Give bookstore staff a dashboard view flagging which titles are low on or out of
-  stock, so they know what needs reordering without eyeballing raw numbers.
+- Objective: Show real book cover images on Product A's live `/shop` catalog and Product B's
+  inventory dashboard, currently both blank (`cover_image_url` is `null` on every row of the
+  live shared `books` table — no code path ever populates it).
 
-- Approach: Server-side fetch of `stock_quantity`/`reorder_threshold` per book from the shared
-  `books` table, computed into a status (Out of Stock / Low Stock / OK) by a pure, deterministic
-  function — no AI involved in the classification, matching the repo's Bounded AI rule. Classify:
-  `stock_quantity <= 0` → Out of Stock; `0 < stock_quantity <= reorder_threshold` → Low Stock;
-  else → OK. Sorted most-urgent-first, then alphabetically within a status.
-  Alternative considered: client-side fetch + compute. Rejected — this is a read-only staff view
-  with no interactivity yet, so a server component avoids an unnecessary API surface.
+- Approach: A one-time Node script (`scripts/fetch-book-covers.mjs`) reads every ISBN from the
+  live `books` table (read-only), looks up a cover via Google Books first, Open Library as a
+  fallback for the real coverage gaps Google Books has, and writes the results to a static JSON
+  file committed into each product's own `lib/` directory (no shared runtime code between
+  products, matching this repo's existing convention). Each product reads its local copy by ISBN
+  at render time — no live API calls at runtime, no database write, ever. Deliberately **not**
+  writing the result back to the shared `books` table: that table is Jeffrey's, shared with his
+  own live product, and this repo's app has no write access to it today — a static file avoids
+  that question entirely rather than raising it.
+  Alternative considered (compared directly with Jeffrey over Slack): cache the looked-up URL
+  into a `books` column instead of a static file, the way his separate project does it. Rejected
+  for this repo specifically because it requires write access to the shared table; his two-source
+  fallback logic (Google Books → Open Library) is adopted here, his storage choice isn't.
 
 - Inputs/Outputs:
-  - Reads `books`: `isbn`, `title`, `author`, `stock_quantity`, `reorder_threshold` (column names
-    per `0005_google_books_schema.sql`'s rename, not the original `0001_books.sql` names).
-  - `lib/inventory.ts`: `classifyStock(stock, threshold): StockStatus` (pure, unit-testable
-    without a live DB) and `getInventoryStatus(): Promise<{ books: BookStockRow[], source:
-    "supabase" | "sample" }>`.
-  - A page rendering a table: Title / Author / Stock / Reorder Threshold / Status badge.
+  - `scripts/fetch-book-covers.mjs`: reads ISBNs from the live `books` table via the public anon
+    key (read-only), outputs `{ [isbn]: { coverUrl: string | null, source: "google-books" |
+    "open-library" | null } }` to `apps/product-a/lib/bookCovers.json` and
+    `apps/product-b/lib/bookCovers.json`.
+  - `apps/product-a/lib/books.ts`: live-Supabase path falls back to the local JSON when
+    `cover_image_url` is null (currently always, since nothing populates that column).
+  - `apps/product-b/lib/inventory.ts` / `app/page.tsx`: adds a cover thumbnail to each row,
+    sourced from the local JSON.
 
-- Verification: Unit tests on `classifyStock()` covering the three states plus the boundary case
-  (`stock === threshold` → Low Stock, and the defensive negative-stock case). Manual check against
-  a local sample-data fallback (mirrors Product A's `SAMPLE_BOOKS` pattern, since
-  `reorder_threshold` doesn't exist on the live table yet — see Open Questions) confirming correct
-  badges and sort order, `npm run build` clean, zero console errors. Live-Supabase verification is
-  explicitly deferred until Open Question 1 below is resolved.
+- Verification: run the script once, confirm the JSON files have real cover URLs for most of the
+  8 live books (spot-check 2-3 against the actual titles); `npm run lint`/`npm run build` clean
+  on both products; live check on both deployed URLs that real cover thumbnails render, with a
+  clean "no cover" fallback for any ISBN neither source had.
+  **Now fully run** (2026-08-26, local dev against the real live `books` table): 8/8 books
+  looked up, 5 real covers found (all via Google Books), 3 correctly show "no cover" — those 3
+  all have invalid ISBN-13 checksums in the live table (a separate, pre-existing data issue, not
+  a bug in this script — see Edge Cases). A real bug was caught and fixed during this
+  verification: the Open Library fallback initially used a `HEAD` request to detect its "no
+  cover" placeholder image via `Content-Length`, but Open Library doesn't send that header on
+  `HEAD` responses, so the check silently never fired — confirmed by comparing a real ISBN
+  against a fabricated one and getting the identical 43-byte placeholder GIF back for both.
+  Fixed by switching to a real `GET` and checking the downloaded body's actual byte length.
+  Verified live on both `localhost:3000/shop` and Product B's dashboard (using a throwaway test
+  login, not real credentials) — cover thumbnails render correctly, "no cover" placeholder is
+  clean for the 3 books without one.
 
-- Files: `apps/product-b/lib/inventory.ts`, `apps/product-b/lib/inventory.test.ts`,
-  `apps/product-b/lib/supabase.ts`, `apps/product-b/app/page.tsx`,
-  `apps/product-b/.env.example`. (5, at the cap — `package.json`/`package-lock.json`/
-  `vitest.config.ts` also change, but only to add the `@supabase/supabase-js` dependency and test
-  runner, mechanically required to use them, not additional design surface.)
+- Files: `scripts/fetch-book-covers.mjs`, `apps/product-a/lib/bookCovers.json`,
+  `apps/product-a/lib/books.ts`, `apps/product-b/lib/bookCovers.json`,
+  `apps/product-b/lib/inventory.ts`, `apps/product-b/app/page.tsx`. Six — one shared script plus
+  two thin read-sites, not six independent design decisions; noted and accepted when this was
+  scoped with Philip rather than force-fit to 5.
 
-- Edge Cases: `reorder_threshold` missing/null (see Open Questions — blocks live-data
-  verification specifically, not the classification logic itself, which still runs correctly
-  against sample data); empty catalog → empty state, not a crash; `stock_quantity` negative
-  (shouldn't happen given Product A's DB check constraint, but defended anyway — treated as Out
-  of Stock); tied urgency → secondary sort by title.
+- Edge Cases: ISBN with no cover from either source → `null`, rendered as a clean placeholder,
+  never a broken image. Script run against a books table that's changed since last run — safe,
+  it always reads the live table fresh and overwrites both JSON files completely. Google Books
+  transient 5xx — one retry with backoff, same pattern already proven in
+  `apps/product-a/lib/googleBooks.ts`. Open Library's known quirk of serving a tiny placeholder
+  image instead of a 404 for a missing cover — checked via actual downloaded byte length (not a
+  `HEAD` request's `Content-Length`, which Open Library doesn't reliably send — see Verification).
+  **Found during this build, not fixed here**: the 3 books with no cover from either source all
+  have invalid ISBN-13 checksums in the live `books` table — the same ones `DECISIONS.md`
+  documents as fixed in the synthetic CSV fixture a few days ago, but that fix apparently never
+  reached the live table. Flagged to Philip; not silently corrected, since it's a write to
+  Jeffrey's shared table and a data-integrity issue outside this spec's scope.
 
-- Open Questions:
-  1. `reorder_threshold` doesn't exist on the live `books` table yet — confirmed by reading
-     every one of Product A's actual migrations in order (`isbn`/`title`/`author`/
-     `stock_quantity`/`price` exist there, after `0005`'s rename from the original
-     `"ISBN"`/`book_title`/`author_name`, plus the Google Books columns). It's in
-     the team-signed-off shared schema doc and the synthetic CSV, but never added to the real
-     table. Per root `CLAUDE.md`'s "don't invent a shared column unilaterally" — even though it's
-     already schema-approved, actually adding it to Product A's live table/migrations needs
-     Jeffrey's nod, since Product B doesn't own that table. **This blocks live verification, not
-     the build** — sample-data mode unblocks starting now.
-  2. Does this need staff auth, or is read-only-unauthenticated fine for v1 (`books` is already
-     publicly readable via existing RLS policy, no PII involved either way)? Assumed fine for v1
-     given no PII is exposed; flag if that assumption turns out wrong.
+- Open Questions: none blocking. Staleness is a known, accepted tradeoff — rerun the script by
+  hand if the catalog changes; not automated.
 
-- Tipping Point: filtering/sorting UI, CSV export, or a "mark as reordered" workflow is a
-  follow-up spec — this one is view-only.
+- Tipping Point: if the catalog grows large enough that manually rerunning the script becomes a
+  real burden, or if per-book manual cover overrides become a real ask, that's a follow-up spec
+  for a live-fetch-and-cache approach — not a reason to build that now.
