@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
-/* Warm, book-paper light theme -- deliberately always light (no dark-mode switch), see commit
-   message for reasoning. Values match Tailwind's "stone" palette (stone-100 / stone-800) so
-   utility classes elsewhere in this app (e.g. text-stone-500) stay visually consistent with
+/* Light grey / emerald theme (2026-08-26, replaces the earlier warm book-paper theme) --
+   deliberately always light (no dark-mode switch), matches Product B's dashboard. Values match
+   Tailwind's "neutral" palette so utility classes elsewhere in this app stay consistent with
    these CSS variables. */
 :root {
-  --background: #f5f5f4;
-  --foreground: #292524;
+  --background: #f5f5f5;
+  --foreground: #171717;
 }
 
 @theme inline {
