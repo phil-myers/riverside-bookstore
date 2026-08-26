@@ -51,6 +51,21 @@ open decision.
 
 ## Per-product deploy steps
 
+**Updated 2026-08-26** — the staff login (PR #33), the Product A "Chat" link (PR #34), and the
+Product D build fix (PR #36) all added or changed env vars since this doc was first written.
+Re-verified directly against each product's current `.env.example`.
+
+**Deploy order matters here, more than it might look:** Products A → C link to each other in two
+different ways. Product A's homepage links to B, C, and D via `NEXT_PUBLIC_*` env vars, which is
+easy to update later — but those vars are baked in at *build* time, not read live, so changing one
+in Vercel's dashboard requires a **redeploy** to take effect, not just a save. Product C's links
+back to Product A, on the other hand, are plain hardcoded URLs in `index.html` (no build step to
+inject an env var there) — changing those means an actual code change and a new PR, not a
+dashboard setting. Cheapest path: **deploy all four first** to get their real URLs, *then* go back
+and (a) set Product A's three `NEXT_PUBLIC_PRODUCT_*_URL` vars and redeploy it, and (b) open a
+quick PR updating Product C's hardcoded links. Don't try to get the cross-links perfect on the
+first pass — it'll just mean redeploying Product A twice.
+
 ### Product A — Customer Ordering & Loyalty App
 - **Root Directory:** `apps/product-a`
 - **Build command:** `next build` (Vercel auto-detects this)
@@ -58,7 +73,11 @@ open decision.
   - `NEXT_PUBLIC_SUPABASE_URL`
   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
   - `GOOGLE_BOOKS_API_KEY` — optional; catalog works without it, just no cover art. Server-side
-    only, no `NEXT_PUBLIC_` prefix (never sent to the browser — see note below).
+    only, no `NEXT_PUBLIC_` prefix (never sent to the browser — see note below). Already has a
+    working value locally as of 2026-08-26 — same key Jeffrey and Dominic both use.
+  - `NEXT_PUBLIC_PRODUCT_B_URL`, `NEXT_PUBLIC_PRODUCT_D_URL`, `NEXT_PUBLIC_PRODUCT_C_URL` —
+    optional, default to local dev ports if blank. Set these to the real B/D/C URLs *after* all
+    four are deployed (see deploy-order note above), then redeploy Product A.
 - **Points at:** Jeffrey's existing Supabase project (decided above) — already has all 9
   migrations applied, so this is ready as-is, not something to set up from scratch.
 
@@ -68,6 +87,10 @@ open decision.
 - **Environment variables** (from `apps/product-b/.env.example`):
   - `NEXT_PUBLIC_SUPABASE_URL`
   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  - `STAFF_USERNAME`, `STAFF_PASSWORD`, `STAFF_SESSION_SECRET` — the shared staff login added
+    2026-08-26 (PR #33). Server-side only, no `NEXT_PUBLIC_` prefix. Use the same three values
+    already set in `apps/product-b/.env.local` locally, or pick new ones — just keep them
+    identical across Products B and D so one login works for both.
 - **Known limitation, not a deploy blocker:** the live `books` table doesn't have a
   `reorder_threshold` column yet (schema `SPEC.md` Open Question 1, needs Jeffrey). Until that's
   added, this product will show its sample-data fallback in production instead of real inventory
@@ -78,16 +101,19 @@ open decision.
 - **Build command:** none — static HTML/CSS/JS, no build step. On Vercel, set Framework Preset to
   "Other" and leave the build command blank.
 - **Environment variables:** none. No Supabase, no API keys, fully self-contained.
-- Simplest of the four to deploy — genuinely zero configuration beyond the root directory.
+- **After Product A is deployed:** its `index.html` has two hardcoded links back to Product A
+  (the back arrow and "Store") currently pointing at `localhost:3000` — needs a small follow-up
+  PR once Product A's real URL exists (see deploy-order note above).
+- Otherwise the simplest of the four to deploy — no other configuration beyond the root directory.
 
 ### Product D — Marketing Content Generator
 - **Root Directory:** `apps/product-d`
 - **Build command:** `next build`
-- **Environment variables:** none currently. Verified directly — nothing in `apps/product-d/app/`
-  or `apps/product-d/lib/` reads `process.env` at all. Cover/metadata fetching uses Open Library,
-  which needs no key. (The Google Books key situation mentioned earlier today, in
-  `apps/product-d/.env.local`, was for a separate, never-merged genre-classification spot-check —
-  not something the deployed app needs.)
+- **Environment variables:**
+  - `STAFF_USERNAME`, `STAFF_PASSWORD`, `STAFF_SESSION_SECRET` — same shared staff login as
+    Product B (PR #33), same three values so one login works for both. This was previously listed
+    as "none currently" — that was accurate before 2026-08-26, no longer is.
+  - Cover/metadata fetching still uses Open Library, which needs no key.
 
 ## A note on `NEXT_PUBLIC_` prefixes, since it matters for security
 
