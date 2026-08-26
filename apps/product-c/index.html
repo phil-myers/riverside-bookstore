@@ -22,14 +22,14 @@
         </div>
 
         <div class="header-actions">
-          <!-- Product A isn't deployed yet (see docs/DEPLOYMENT.md), so this points at its local
-          dev port -- update to the real URL once it's live. No build step here to inject an env
-          var the way the other products do, so it's a plain hardcoded link. -->
-          <a href="http://localhost:3000" class="return-icon" aria-label="Return to homepage">
+          <!-- Points at Product A's live Vercel deployment (docs/DEPLOYMENT.md). No build step
+          here to inject an env var the way the other products do, so it's a plain hardcoded
+          link -- update this by hand again if Product A's URL ever changes. -->
+          <a href="https://riverside-bookstore-product-a.vercel.app" class="return-icon" aria-label="Return to homepage">
             ↩
           </a>
           <nav class="topnav" aria-label="Main navigation">
-            <a href="http://localhost:3000/shop">Store</a>
+            <a href="https://riverside-bookstore-product-a.vercel.app/shop">Store</a>
             <!-- Events has no destination yet -- no product in this repo has built that page.
             Left as "#" rather than pointing somewhere fake. -->
             <a href="#">Events</a>
