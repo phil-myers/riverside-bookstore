@@ -10,10 +10,10 @@ const STAFF_CONTENT_TOOL_URL = process.env.NEXT_PUBLIC_PRODUCT_D_URL || "http://
 
 export default async function Home() {
   const { books } = await getBooks();
-  const featured = books.filter((book) => book.stockQuantity > 0).slice(0, 4);
+  const featured = books.filter((book) => book.stockQuantity > 0);
 
   return (
-    <main className="mx-auto max-w-2xl p-8">
+    <main className="mx-auto max-w-5xl p-8">
       <section className="py-8 text-center">
         <h1 className="font-serif text-4xl font-semibold tracking-tight text-ink">Riverside Books</h1>
         <p className="mt-3 text-ink/70">
@@ -30,10 +30,10 @@ export default async function Home() {
 
       {featured.length > 0 && (
         <section className="mt-4 border-t border-ink/10 pt-8">
-          <p className="mb-4 text-sm font-medium text-ink/70">On the shelf right now</p>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <p className="mb-6 text-sm font-medium text-ink/70">On the shelf right now</p>
+          <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-4">
             {featured.map((book) => (
-              <FeaturedBookCard key={book.isbn} book={book} />
+              <FeaturedBookCard key={book.isbn} book={book} size="large" />
             ))}
           </div>
         </section>
