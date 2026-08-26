@@ -21,18 +21,20 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen antialiased">
-        <header className="mx-auto flex max-w-2xl items-center justify-between p-8 pb-0">
-          <Link href="/" className="text-lg font-semibold">
-            Riverside Books
-          </Link>
-          <div className="flex items-center gap-4">
-            <a href={SUPPORT_CHAT_URL} className="text-sm underline">
-              Chat
-            </a>
-            <Link href="/cart" className="text-sm underline">
-              Cart
+        <header className="border-b border-neutral-200 bg-white">
+          <div className="mx-auto flex max-w-2xl items-center justify-between px-8 py-4">
+            <Link href="/" className="text-lg font-semibold text-neutral-900">
+              Riverside Books
             </Link>
-            <AuthNav />
+            <div className="flex items-center gap-4">
+              <a href={SUPPORT_CHAT_URL} className="text-sm font-medium text-emerald-700 hover:text-emerald-800">
+                Chat
+              </a>
+              <Link href="/cart" className="text-sm text-neutral-600 hover:text-neutral-900">
+                Cart
+              </Link>
+              <AuthNav />
+            </div>
           </div>
         </header>
         {children}

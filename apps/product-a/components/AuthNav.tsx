@@ -47,7 +47,7 @@ export function AuthNav() {
       <Link href="/orders" className="underline">
         My orders
       </Link>
-      <Link href="/account" className="text-stone-500 underline">
+      <Link href="/account" className="text-neutral-500 underline">
         {customerId}
       </Link>
       <button
