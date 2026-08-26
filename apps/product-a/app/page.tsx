@@ -1,54 +1,74 @@
+import Link from "next/link";
 import { getBooks } from "@/lib/books";
-import { AddToCartButton } from "@/components/AddToCartButton";
+
+// Product B/D aren't deployed yet (see docs/DEPLOYMENT.md) -- these env vars let this link work
+// against local dev servers now and get pointed at real URLs later without a code change.
+// NEXT_PUBLIC_ prefix is fine here: these are just plain page addresses, not secrets.
+const STAFF_INVENTORY_URL = process.env.NEXT_PUBLIC_PRODUCT_B_URL || "http://localhost:3001";
+const STAFF_CONTENT_TOOL_URL = process.env.NEXT_PUBLIC_PRODUCT_D_URL || "http://localhost:3002";
 
 export default async function Home() {
-  const { books, source } = await getBooks();
+  const { books } = await getBooks();
+  const featured = books.filter((book) => book.stockQuantity > 0).slice(0, 4);
 
   return (
     <main className="mx-auto max-w-2xl p-8">
-      <p className="mb-6 text-sm text-neutral-500">Browse what&apos;s on the shelf.</p>
-
-      {source === "sample" && (
-        <p className="mb-6 rounded border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">
-          Showing sample data. Copy <code>.env.example</code> to <code>.env.local</code> and fill
-          in a Supabase project&apos;s URL and anon key to see your real catalog.
+      <section className="py-8 text-center">
+        <h1 className="text-3xl font-semibold tracking-tight">Riverside Books</h1>
+        <p className="mt-3 text-neutral-600">
+          Your independent neighborhood bookstore — new arrivals, staff picks, and the titles
+          you&apos;re looking for.
         </p>
+        <Link
+          href="/shop"
+          className="mt-6 inline-block rounded bg-neutral-900 px-6 py-3 text-sm font-medium text-white hover:bg-neutral-800"
+        >
+          Inventory
+        </Link>
+      </section>
+
+      {featured.length > 0 && (
+        <section className="mt-4 border-t border-neutral-200 pt-8">
+          <p className="mb-4 text-sm font-medium text-neutral-700">On the shelf right now</p>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {featured.map((book) => (
+              <Link
+                key={book.isbn}
+                href="/shop"
+                className="block text-center transition-opacity hover:opacity-80"
+              >
+                {book.coverImageUrl ? (
+                  // Same no-fixed-remote-image-domain reasoning as /shop -- see that page.
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={book.coverImageUrl}
+                    alt=""
+                    className="mx-auto h-32 w-[88px] rounded-sm object-cover shadow-sm"
+                  />
+                ) : (
+                  <div className="mx-auto flex h-32 w-[88px] items-center justify-center rounded-sm bg-neutral-100 text-xs text-neutral-400">
+                    No cover
+                  </div>
+                )}
+                <p className="mt-2 truncate text-xs text-neutral-600">{book.title}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
       )}
 
-      {source === "supabase" && books.length === 0 && (
-        <p className="text-sm text-neutral-500">No books in the catalog yet.</p>
-      )}
-
-      {books.length > 0 && (
-        <ul className="divide-y divide-neutral-200">
-          {books.map((book) => (
-            <li key={book.isbn} className="flex items-center gap-4 py-3">
-              {book.coverImageUrl && (
-                // Cover source isn't confirmed yet (docs/google-books-integration-plan.md, live
-                // fetching not built), so no fixed remote-image domain to configure next/image
-                // against.
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={book.coverImageUrl}
-                  alt=""
-                  className="h-16 w-11 flex-shrink-0 rounded-sm object-cover"
-                />
-              )}
-              <div className="flex flex-1 items-center justify-between">
-                <div>
-                  <p className="font-medium">{book.title}</p>
-                  <p className="text-sm text-neutral-500">{book.author}</p>
-                  <p className="text-sm text-neutral-700">${book.price.toFixed(2)}</p>
-                  <p className="text-xs text-neutral-400">
-                    {book.stockQuantity > 0 ? `${book.stockQuantity} in stock` : "Out of stock"}
-                  </p>
-                </div>
-                <AddToCartButton book={book} disabled={book.stockQuantity === 0} />
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+      <footer className="mt-12 border-t border-neutral-100 pt-4 text-center">
+        <a href={STAFF_INVENTORY_URL} className="text-xs text-neutral-300 hover:text-neutral-400">
+          Staff
+        </a>
+        <span className="mx-2 text-xs text-neutral-200">·</span>
+        <a
+          href={STAFF_CONTENT_TOOL_URL}
+          className="text-xs text-neutral-300 hover:text-neutral-400"
+        >
+          Content tools
+        </a>
+      </footer>
     </main>
   );
 }
