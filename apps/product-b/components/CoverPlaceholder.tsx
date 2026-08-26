@@ -3,8 +3,11 @@
 // "No cover" box. Not real artwork: no image-generation tool is available here.
 const GRADIENTS = [
   "from-emerald-500 to-emerald-700",
-  "from-emerald-600 to-teal-700",
-  "from-teal-500 to-emerald-700",
+  "from-teal-500 to-cyan-700",
+  "from-sky-500 to-blue-700",
+  "from-violet-500 to-purple-700",
+  "from-rose-500 to-pink-700",
+  "from-amber-500 to-orange-700",
 ];
 
 function gradientFor(isbn: string): string {
