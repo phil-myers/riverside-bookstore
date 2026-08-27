@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getBooks } from "@/lib/books";
-import { CoverPlaceholder } from "@/components/CoverPlaceholder";
+import { FeaturedBookCard } from "@/components/FeaturedBookCard";
 
 // Product B/D aren't deployed yet (see docs/DEPLOYMENT.md) -- these env vars let this link work
 // against local dev servers now and get pointed at real URLs later without a code change.
@@ -10,64 +10,43 @@ const STAFF_CONTENT_TOOL_URL = process.env.NEXT_PUBLIC_PRODUCT_D_URL || "http://
 
 export default async function Home() {
   const { books } = await getBooks();
-  const featured = books.filter((book) => book.stockQuantity > 0).slice(0, 4);
+  const featured = books.filter((book) => book.stockQuantity > 0);
 
   return (
-    <main className="mx-auto max-w-2xl p-8">
+    <main className="mx-auto max-w-5xl p-8">
       <section className="py-8 text-center">
-        <h1 className="text-3xl font-semibold tracking-tight text-neutral-900">Riverside Books</h1>
-        <p className="mt-3 text-neutral-600">
+        <h1 className="font-serif text-4xl font-semibold tracking-tight text-ink">Riverside Books</h1>
+        <p className="mt-3 text-ink/70">
           Your independent neighborhood bookstore — new arrivals, staff picks, and the titles
           you&apos;re looking for.
         </p>
         <Link
           href="/shop"
-          className="mt-6 inline-block rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
+          className="mt-6 inline-block rounded-full bg-accent px-6 py-3 text-sm font-semibold text-paper hover:opacity-90"
         >
           Books
         </Link>
       </section>
 
       {featured.length > 0 && (
-        <section className="mt-4 border-t border-neutral-200 pt-8">
-          <p className="mb-4 text-sm font-medium text-neutral-700">On the shelf right now</p>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <section className="mt-4 border-t border-ink/10 pt-8">
+          <p className="mb-6 text-sm font-medium text-ink/70">On the shelf right now</p>
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
             {featured.map((book) => (
-              <Link
-                key={book.isbn}
-                href="/shop"
-                className="block text-center transition-opacity hover:opacity-80"
-              >
-                {book.coverImageUrl ? (
-                  // Same no-fixed-remote-image-domain reasoning as /shop -- see that page.
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={book.coverImageUrl}
-                    alt=""
-                    className="mx-auto h-32 w-[88px] rounded-md object-cover shadow-sm"
-                  />
-                ) : (
-                  <CoverPlaceholder
-                    title={book.title}
-                    isbn={book.isbn}
-                    className="mx-auto h-32 w-[88px] rounded-md shadow-sm"
-                  />
-                )}
-                <p className="mt-2 truncate text-xs text-neutral-600">{book.title}</p>
-              </Link>
+              <FeaturedBookCard key={book.isbn} book={book} size="large" />
             ))}
           </div>
         </section>
       )}
 
-      <footer className="mt-12 border-t border-neutral-200 pt-4 text-center">
-        <a href={STAFF_INVENTORY_URL} className="text-xs text-neutral-400 hover:text-neutral-600">
+      <footer className="mt-12 border-t border-ink/10 pt-4 text-center">
+        <a href={STAFF_INVENTORY_URL} className="text-xs text-ink/40 hover:text-ink/70">
           Staff
         </a>
-        <span className="mx-2 text-xs text-neutral-300">·</span>
+        <span className="mx-2 text-xs text-ink/20">·</span>
         <a
           href={STAFF_CONTENT_TOOL_URL}
-          className="text-xs text-neutral-400 hover:text-neutral-600"
+          className="text-xs text-ink/40 hover:text-ink/70"
         >
           Content tools
         </a>

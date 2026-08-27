@@ -2,12 +2,10 @@
 // Books / Open Library just don't have one) -- a gradient card with the title, instead of a flat
 // "No cover" box. Not real artwork: no image-generation tool is available here.
 const GRADIENTS = [
-  "from-emerald-500 to-emerald-700",
-  "from-teal-500 to-cyan-700",
-  "from-sky-500 to-blue-700",
-  "from-violet-500 to-purple-700",
-  "from-rose-500 to-pink-700",
-  "from-amber-500 to-orange-700",
+  "from-[#3F6C51] to-[#1B2E28]",
+  "from-[#B08D3F] to-[#7A2E2E]",
+  "from-[#1B2E28] to-[#3F6C51]",
+  "from-[#7A2E2E] to-[#B08D3F]",
 ];
 
 function gradientFor(isbn: string): string {
@@ -29,7 +27,7 @@ export function CoverPlaceholder({
     <div
       className={`flex items-center justify-center bg-gradient-to-br p-1 text-center ${gradientFor(isbn)} ${className ?? ""}`}
     >
-      <span className="line-clamp-4 text-[8px] font-semibold leading-tight text-white">
+      <span className="line-clamp-4 font-serif text-[8px] font-semibold leading-tight text-paper">
         {title}
       </span>
     </div>
