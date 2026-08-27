@@ -40,13 +40,13 @@ export default async function Home() {
       )}
 
       <footer className="mt-12 border-t border-ink/10 pt-4 text-center">
-        <a href={STAFF_INVENTORY_URL} className="text-xs text-ink/40 hover:text-ink/70">
+        <a href={STAFF_INVENTORY_URL} className="text-sm text-ink/60 hover:text-ink">
           Staff
         </a>
-        <span className="mx-2 text-xs text-ink/20">·</span>
+        <span className="mx-2 text-sm text-ink/30">·</span>
         <a
           href={STAFF_CONTENT_TOOL_URL}
-          className="text-xs text-ink/40 hover:text-ink/70"
+          className="text-sm text-ink/60 hover:text-ink"
         >
           Content tools
         </a>

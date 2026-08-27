@@ -17,7 +17,7 @@ const STATUS_TONE: Record<StockStatus, StampTone> = {
 const STAT_TILES: { status: StockStatus; label: string; accent: string; bar: string }[] = [
   { status: "out-of-stock", label: "Out of Stock", accent: "text-claret", bar: "bg-claret" },
   { status: "low-stock", label: "Low Stock", accent: "text-gold", bar: "bg-gold" },
-  { status: "ok", label: "GOOD", accent: "text-accent", bar: "bg-accent" },
+  { status: "ok", label: "Good", accent: "text-accent", bar: "bg-accent" },
 ];
 
 export default async function Home() {
