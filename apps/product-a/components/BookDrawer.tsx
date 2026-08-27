@@ -1,7 +1,7 @@
 "use client";
 
 import type { Book } from "@/types/book";
-import { addToCart } from "@/lib/cart";
+import { AddToCartButton } from "./AddToCartButton";
 import { CoverPlaceholder } from "./CoverPlaceholder";
 import { StampBadge } from "./StampBadge";
 
@@ -63,14 +63,7 @@ export function BookDrawer({ book, onClose }: { book: Book | null; onClose: () =
               </StampBadge>
             </div>
 
-            <button
-              type="button"
-              disabled={book.stockQuantity === 0}
-              onClick={() => addToCart(book)}
-              className="mt-auto rounded-full bg-accent px-4 py-3 text-sm font-semibold text-paper hover:opacity-90 disabled:cursor-not-allowed disabled:bg-ink/20"
-            >
-              {book.stockQuantity === 0 ? "Out of stock" : "Add to cart"}
-            </button>
+            <AddToCartButton book={book} disabled={book.stockQuantity === 0} size="lg" />
           </div>
         )}
       </aside>

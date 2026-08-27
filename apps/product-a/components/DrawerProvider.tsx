@@ -1,17 +1,21 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useRef, useState, type ReactNode } from "react";
 import type { Book } from "@/types/book";
 import { CartDrawer } from "./CartDrawer";
 import { BookDrawer } from "./BookDrawer";
+import { CartToast } from "./CartToast";
 
 type DrawerContextValue = {
   openBook: (book: Book) => void;
   openCart: () => void;
   close: () => void;
+  showToast: (message: string) => void;
 };
 
 const DrawerContext = createContext<DrawerContextValue | null>(null);
+
+const TOAST_DURATION_MS = 2500;
 
 // Additive quick-view panels (matches Jeffrey's cart-drawer.tsx / product-drawer.tsx pattern) --
 // deliberately doesn't replace the existing /cart page's tested checkout flow, just gives faster
@@ -20,6 +24,8 @@ const DrawerContext = createContext<DrawerContextValue | null>(null);
 export function DrawerProvider({ children }: { children: ReactNode }) {
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function openBook(book: Book) {
     setCartOpen(false);
@@ -36,11 +42,20 @@ export function DrawerProvider({ children }: { children: ReactNode }) {
     setCartOpen(false);
   }
 
+  function showToast(message: string) {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+    setToastMessage(message);
+    toastTimeoutRef.current = setTimeout(() => setToastMessage(null), TOAST_DURATION_MS);
+  }
+
   return (
-    <DrawerContext.Provider value={{ openBook, openCart, close }}>
+    <DrawerContext.Provider value={{ openBook, openCart, close, showToast }}>
       {children}
       <BookDrawer book={selectedBook} onClose={close} />
       <CartDrawer open={cartOpen} onClose={close} />
+      <CartToast message={toastMessage} />
     </DrawerContext.Provider>
   );
 }
